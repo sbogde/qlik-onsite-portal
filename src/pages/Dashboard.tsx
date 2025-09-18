@@ -1,5 +1,6 @@
 import React from 'react';
 import { QlikObjectContainer } from '@/components/QlikObjectContainer';
+import { QlikConnectionConfig } from '@/components/QlikConnectionConfig';
 
 const Dashboard: React.FC = () => {
   return (
@@ -9,32 +10,34 @@ const Dashboard: React.FC = () => {
         <p className="text-muted-foreground">Overview of key performance indicators and metrics</p>
       </div>
 
+      <QlikConnectionConfig />
+
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <QlikObjectContainer
-          objectId="dashboard-kpi-1"
-          title="Revenue Overview"
+          objectId="sales-kpi"
+          title="Sales KPI Overview"
           height="300px"
         />
         <QlikObjectContainer
-          objectId="dashboard-kpi-2"
-          title="Sales Performance"
+          objectId="revenue-trend"
+          title="Revenue Trends"
           height="300px"
         />
       </div>
 
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
         <QlikObjectContainer
-          objectId="dashboard-chart-1"
-          title="Monthly Trends"
+          objectId="product-performance"
+          title="Product Performance"
           height="350px"
         />
         <QlikObjectContainer
-          objectId="dashboard-chart-2"
-          title="Regional Breakdown"
+          objectId="regional-sales"
+          title="Regional Sales"
           height="350px"
         />
         <QlikObjectContainer
-          objectId="dashboard-chart-3"
+          objectId="customer-segments"
           title="Customer Segments"
           height="350px"
         />
@@ -42,7 +45,7 @@ const Dashboard: React.FC = () => {
 
       <div className="grid grid-cols-1 gap-6">
         <QlikObjectContainer
-          objectId="dashboard-table-1"
+          objectId="top-products-table"
           title="Top Performing Products"
           height="400px"
         />
