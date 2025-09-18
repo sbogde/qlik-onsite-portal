@@ -27,13 +27,22 @@ export const QlikObjectContainer: React.FC<QlikObjectContainerProps> = ({
         setLoading(true);
         setError(null);
 
-        // This is a placeholder for the actual Qlik object rendering
-        // In a real implementation, you would use the qlikService here
-        await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate loading
+        // Import qlikService dynamically to avoid circular dependencies
+        const { qlikService } = await import('@/lib/qlik');
         
-        // Simulate random success/error for demo
-        if (Math.random() > 0.7) {
-          throw new Error(`Failed to load object: ${objectId}`);
+        if (!qlikService.isConnected()) {
+          throw new Error('Not connected to Qlik Sense. Please configure connection first.');
+        }
+
+        // Get the actual Qlik object using the hub object ID
+        const result = await qlikService.getObject(objectId);
+        
+        if (containerRef.current && result.object) {
+          // Clear the container
+          containerRef.current.innerHTML = '';
+          
+          // Show the object (this will embed the actual Qlik visualization)
+          await result.object.show(containerRef.current);
         }
 
         setLoading(false);
@@ -43,7 +52,7 @@ export const QlikObjectContainer: React.FC<QlikObjectContainerProps> = ({
       }
     };
 
-    if (objectId) {
+    if (objectId && containerRef.current) {
       loadQlikObject();
     }
   }, [objectId]);
@@ -83,16 +92,8 @@ export const QlikObjectContainer: React.FC<QlikObjectContainerProps> = ({
       <div 
         ref={containerRef}
         style={{ height }}
-        className="bg-gradient-subtle rounded-lg border border-border p-4 flex items-center justify-center"
-      >
-        <div className="text-center text-muted-foreground">
-          <div className="w-16 h-16 mx-auto mb-4 bg-gradient-analytics rounded-full flex items-center justify-center">
-            <div className="w-8 h-8 bg-primary/20 rounded-full animate-pulse"></div>
-          </div>
-          <p className="text-sm">Qlik Object: {objectId}</p>
-          <p className="text-xs mt-1 opacity-70">Visualization will render here</p>
-        </div>
-      </div>
+        className="bg-gradient-subtle rounded-lg border border-border overflow-hidden"
+      />
     </Card>
   );
 };
