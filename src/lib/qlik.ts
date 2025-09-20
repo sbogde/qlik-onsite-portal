@@ -1,4 +1,5 @@
-import enigma from 'enigma.js';
+import enigma from "enigma.js";
+import bundledSchema from "enigma.js/schemas/12.612.0.json" with { type: "json" };
 
 export interface QlikConfig {
   host: string;
@@ -22,44 +23,34 @@ class QlikService {
   async connect(config: QlikConfig): Promise<boolean> {
     try {
       this.config = config;
-      
-      // For demo purposes, try to get schema from different sources
-      let schema;
-      try {
-        // Try official schema first
-        schema = await fetch(`${this.getBaseUrl()}/resources/schemas/enigma.json`).then(r => r.json());
-      } catch {
-        // Fallback to a basic schema for demo purposes
-        schema = {
-          "enigma": "12.1344.0",
-          "services": [],
-          "structs": [],
-          "enums": []
-        };
-      }
-      
+
+      console.log("config", config);
+      console.log("baseUrl", this.getBaseUrl());
+
+      const schema = await this.loadSchema();
+
       this.session = enigma.create({
         schema,
         url: this.getWebsocketUrl(),
         createSocket: (url: string) => new WebSocket(url),
         protocol: {
-          delta: false
-        }
+          delta: false,
+        },
       });
 
       const qix = await this.session.open();
       this.app = await qix.openDoc(config.appId);
-      
+
       return true;
     } catch (error) {
-      console.error('Failed to connect to Qlik Sense:', error);
+      console.error("Failed to connect to Qlik Sense:", error);
       throw error;
     }
   }
 
   async getAppInfo(): Promise<any> {
     if (!this.app) {
-      throw new Error('Not connected to Qlik Sense app');
+      throw new Error("Not connected to Qlik Sense app");
     }
 
     try {
@@ -68,17 +59,17 @@ class QlikService {
         title: layout.qTitle,
         description: layout.qDescription,
         modified: layout.qModified,
-        objects: layout.qObjects
+        objects: layout.qObjects,
       };
     } catch (error) {
-      console.error('Failed to get app info:', error);
-      return { title: 'Connected App' };
+      console.error("Failed to get app info:", error);
+      return { title: "Connected App" };
     }
   }
 
   async getObject(objectId: string): Promise<any> {
     if (!this.app) {
-      throw new Error('Not connected to Qlik Sense app');
+      throw new Error("Not connected to Qlik Sense app");
     }
 
     try {
@@ -93,7 +84,7 @@ class QlikService {
 
   async createSessionObject(definition: any): Promise<any> {
     if (!this.app) {
-      throw new Error('Not connected to Qlik Sense app');
+      throw new Error("Not connected to Qlik Sense app");
     }
 
     try {
@@ -101,7 +92,7 @@ class QlikService {
       const layout = await obj.getLayout();
       return { object: obj, layout };
     } catch (error) {
-      console.error('Failed to create session object:', error);
+      console.error("Failed to create session object:", error);
       throw error;
     }
   }
@@ -115,19 +106,52 @@ class QlikService {
   }
 
   private getBaseUrl(): string {
-    if (!this.config) return '';
-    const protocol = this.config.secure ? 'https' : 'http';
-    const port = this.config.port ? `:${this.config.port}` : '';
-    const prefix = this.config.prefix || '';
+    if (!this.config) return "";
+    const protocol = this.config.secure ? "https" : "http";
+    const port = this.config.port ? `:${this.config.port}` : "";
+    const prefix = this.config.prefix || "";
     return `${protocol}://${this.config.host}${port}${prefix}`;
   }
 
   private getWebsocketUrl(): string {
-    if (!this.config) return '';
-    const protocol = this.config.secure ? 'wss' : 'ws';
-    const port = this.config.port ? `:${this.config.port}` : '';
-    const prefix = this.config.prefix || '';
+    if (!this.config) return "";
+    const protocol = this.config.secure ? "wss" : "ws";
+    const port = this.config.port ? `:${this.config.port}` : "";
+    const prefix = this.config.prefix || "";
     return `${protocol}://${this.config.host}${port}${prefix}/app/${this.config.appId}`;
+  }
+
+  private async loadSchema(): Promise<any> {
+    if (!this.config) {
+      throw new Error("Configuration is not set");
+    }
+
+    const baseUrl = this.getBaseUrl();
+    if (baseUrl) {
+      const candidates = [
+        `${baseUrl}/resources/schemas/enigma.json`,
+        `${baseUrl}/dev-hub/engine-api-explorer/dist/enigma.json`,
+      ];
+
+      for (const url of candidates) {
+        try {
+          const response = await fetch(url);
+          if (response.ok) {
+            const remoteSchema = await response.json();
+            if (remoteSchema?.enigma) {
+              return remoteSchema;
+            }
+          }
+        } catch (error) {
+          console.warn(`Schema fetch failed for ${url}:`, error);
+        }
+      }
+    }
+
+    console.info(
+      `Falling back to bundled Qlik Engine schema ${bundledSchema.enigma}`
+    );
+    return bundledSchema;
   }
 
   isConnected(): boolean {
