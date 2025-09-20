@@ -3,6 +3,7 @@ import { Card } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { AlertCircle } from 'lucide-react';
+import { qlikService } from '@/lib/qlik';
 
 interface QlikObjectContainerProps {
   objectId: string;
@@ -20,112 +21,105 @@ export const QlikObjectContainer: React.FC<QlikObjectContainerProps> = ({
   const containerRef = useRef<HTMLDivElement>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [iframeSrc, setIframeSrc] = useState<string | null>(null);
+  const [iframeKey, setIframeKey] = useState(0);
 
   useEffect(() => {
     let isActive = true;
-    let unsubscribe: (() => void) | undefined;
 
-    const initialise = async () => {
+    const applyIframeSrc = () => {
+      if (!isActive) {
+        return;
+      }
+
+      if (!qlikService.isConnected()) {
+        // Stay in loading state until connection is available.
+        return;
+      }
+
       try {
-        setLoading(true);
         setError(null);
-
-        const { qlikService } = await import('@/lib/qlik');
-
-        const renderObject = async () => {
-          try {
-            const result = await qlikService.getObject(objectId);
-
-            if (containerRef.current && result.object) {
-              containerRef.current.innerHTML = '';
-              await result.object.show(containerRef.current);
-            }
-
-            if (isActive) {
-              setLoading(false);
-            }
-          } catch (loadError) {
-            if (!isActive) {
-              return;
-            }
-            setError(
-              loadError instanceof Error ? loadError.message : 'Unknown error occurred'
-            );
-            setLoading(false);
-          }
-        };
-
-        if (qlikService.isConnected()) {
-          await renderObject();
-        } else {
-          const handleConnected = () => {
-            if (!isActive) {
-              return;
-            }
-            void renderObject();
-          };
-
-          qlikService.on('connected', handleConnected);
-          unsubscribe = () => qlikService.off('connected', handleConnected);
-        }
+        setLoading(true);
+        const url = qlikService.buildSingleObjectUrl(objectId, {
+          theme: 'horizon',
+          opt: ['ctxmenu', 'currsel'],
+        });
+        setIframeSrc(url);
+        setIframeKey((key) => key + 1);
       } catch (err) {
-        if (!isActive) {
-          return;
-        }
-        setError(err instanceof Error ? err.message : 'Unknown error occurred');
+        setError(err instanceof Error ? err.message : 'Unable to build object URL');
         setLoading(false);
       }
     };
 
-    if (objectId && containerRef.current) {
-      void initialise();
-    }
+    const handleConnected = () => {
+      applyIframeSrc();
+    };
+
+    const handleDisconnected = () => {
+      if (!isActive) {
+        return;
+      }
+      setIframeSrc(null);
+      setLoading(true);
+    };
+
+    qlikService.on('connected', handleConnected);
+    qlikService.on('disconnected', handleDisconnected);
+
+    // Attempt immediately in case we're already connected.
+    applyIframeSrc();
 
     return () => {
       isActive = false;
-      if (unsubscribe) {
-        unsubscribe();
-      }
+      qlikService.off('connected', handleConnected);
+      qlikService.off('disconnected', handleDisconnected);
     };
   }, [objectId]);
-
-  if (loading) {
-    return (
-      <Card className="p-6 shadow-card transition-smooth hover:shadow-analytics">
-        {title && <h3 className="text-lg font-semibold mb-4 text-analytics-slate">{title}</h3>}
-        <div className="space-y-4">
-          <Skeleton className="h-8 w-3/4" />
-          <Skeleton className="h-32 w-full" />
-          <div className="flex gap-2">
-            <Skeleton className="h-4 w-16" />
-            <Skeleton className="h-4 w-20" />
-            <Skeleton className="h-4 w-12" />
-          </div>
-        </div>
-      </Card>
-    );
-  }
-
-  if (error) {
-    return (
-      <Card className="p-6 shadow-card">
-        {title && <h3 className="text-lg font-semibold mb-4 text-analytics-slate">{title}</h3>}
-        <Alert variant="destructive">
-          <AlertCircle className="h-4 w-4" />
-          <AlertDescription>{error}</AlertDescription>
-        </Alert>
-      </Card>
-    );
-  }
 
   return (
     <Card className={`p-6 shadow-card transition-smooth hover:shadow-analytics ${className}`}>
       {title && <h3 className="text-lg font-semibold mb-4 text-analytics-slate">{title}</h3>}
-      <div 
+
+      {error && (
+        <Alert variant="destructive" className="mb-4">
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
+      )}
+
+      <div
         ref={containerRef}
-        style={{ height }}
-        className="bg-gradient-subtle rounded-lg border border-border overflow-hidden"
-      />
+        style={{ height, position: 'relative' }}
+        className="bg-gradient-subtle rounded-lg border border-border overflow-hidden flex items-center justify-center"
+      >
+        {iframeSrc && !error && (
+          <iframe
+            key={`${iframeSrc}-${iframeKey}`}
+            src={iframeSrc}
+            title={title || objectId}
+            className="w-full h-full border-0"
+            onLoad={() => setLoading(false)}
+            onError={() => {
+              setError('Failed to load visualization from Qlik Sense');
+              setLoading(false);
+            }}
+            allowFullScreen
+          />
+        )}
+
+        {loading && (
+          <div className="absolute inset-0 flex flex-col gap-4 p-6 bg-background/80 backdrop-blur-sm">
+            <Skeleton className="h-6 w-1/2" />
+            <Skeleton className="flex-1" />
+            <div className="flex gap-2">
+              <Skeleton className="h-4 w-16" />
+              <Skeleton className="h-4 w-24" />
+              <Skeleton className="h-4 w-12" />
+            </div>
+          </div>
+        )}
+      </div>
     </Card>
   );
 };

@@ -20,6 +20,7 @@ class QlikService {
   private app: any = null;
   private config: QlikConfig | null = null;
   private listeners: Record<string, Set<(...args: any[]) => void>> = {};
+  private identity = `onsite-portal-${Math.random().toString(36).slice(2, 8)}`;
 
   async connect(config: QlikConfig): Promise<boolean> {
     try {
@@ -160,6 +161,50 @@ class QlikService {
 
   isConnected(): boolean {
     return this.session !== null && this.app !== null;
+  }
+
+  getConfig(): Readonly<QlikConfig> | null {
+    return this.config;
+  }
+
+  getIdentity(): string {
+    return this.identity;
+  }
+
+  buildSingleObjectUrl(
+    objectId: string,
+    options: {
+      theme?: string;
+      opt?: string[];
+      identity?: string;
+    } = {}
+  ): string {
+    if (!this.config) {
+      throw new Error('Not connected to Qlik Sense app');
+    }
+
+    const baseUrl = this.getBaseUrl();
+    const params = new URLSearchParams({
+      appid: this.config.appId,
+      obj: objectId,
+    });
+
+    const theme = options.theme ?? 'horizon';
+    if (theme) {
+      params.set('theme', theme);
+    }
+
+    const opt = options.opt ?? ['ctxmenu', 'currsel'];
+    if (opt.length) {
+      params.set('opt', opt.join(','));
+    }
+
+    const identity = options.identity ?? this.identity;
+    if (identity) {
+      params.set('identity', identity);
+    }
+
+    return `${baseUrl}/single/?${params.toString()}`;
   }
 
   on(event: 'connected' | 'disconnected', handler: (...args: any[]) => void): void {
