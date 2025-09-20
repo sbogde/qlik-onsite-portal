@@ -48,6 +48,8 @@ export const QlikObjectContainer: React.FC<QlikObjectContainerProps> = ({
           teardownRef.current = null;
         }
 
+        containerRef.current.innerHTML = '';
+
         const tearDown = await qlikService.renderVisualization({
           element: containerRef.current,
           objectId,

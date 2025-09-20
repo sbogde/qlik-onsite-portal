@@ -46,6 +46,44 @@ class QlikService {
       this.app = await qix.openDoc(config.appId);
 
       this.nebula = embed(this.app, {
+        types: [
+          {
+            name: "kpi",
+            load: () => import("@nebula.js/sn-kpi").then((m) => m.default ?? m),
+          },
+          {
+            name: "linechart",
+            load: () => import("@nebula.js/sn-line-chart").then((m) => m.default ?? m),
+          },
+          {
+            name: "barchart",
+            load: () => import("@nebula.js/sn-bar-chart").then((m) => m.default ?? m),
+          },
+          {
+            name: "piechart",
+            load: () => import("@nebula.js/sn-pie-chart").then((m) => m.default ?? m),
+          },
+          {
+            name: "scatterplot",
+            load: () => import("@nebula.js/sn-scatter-plot").then((m) => m.default ?? m),
+          },
+          {
+            name: "treemap",
+            load: () => import("@nebula.js/sn-treemap").then((m) => m.default ?? m),
+          },
+          {
+            name: "map",
+            load: () => import("@nebula.js/sn-map").then((m) => m.default ?? m),
+          },
+          {
+            name: "table",
+            load: () => import("@nebula.js/sn-table").then((m) => m.default ?? m),
+          },
+          {
+            name: "pivot-table",
+            load: () => import("@nebula.js/sn-pivot-table").then((m) => m.default ?? m),
+          },
+        ],
         context: {
           theme: "horizon",
           language: "en-US",
@@ -248,7 +286,7 @@ class QlikService {
       });
     }
 
-    return this.nebula.render({
+    const viz = await this.nebula.render({
       element,
       id: objectId,
       options: {
@@ -258,6 +296,14 @@ class QlikService {
         },
       },
     });
+
+    return () => {
+      try {
+        viz?.destroy?.();
+      } catch (error) {
+        console.warn(`Failed to tear down visualization ${objectId}:`, error);
+      }
+    };
   }
 
   on(event: 'connected' | 'disconnected', handler: (...args: any[]) => void): void {
