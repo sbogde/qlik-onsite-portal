@@ -21,13 +21,12 @@ export const QlikObjectContainer: React.FC<QlikObjectContainerProps> = ({
   const containerRef = useRef<HTMLDivElement>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [iframeSrc, setIframeSrc] = useState<string | null>(null);
-  const [iframeKey, setIframeKey] = useState(0);
+  const teardownRef = useRef<(() => void) | null>(null);
 
   useEffect(() => {
     let isActive = true;
 
-    const applyIframeSrc = () => {
+    const renderVisualization = async () => {
       if (!isActive) {
         return;
       }
@@ -40,27 +39,48 @@ export const QlikObjectContainer: React.FC<QlikObjectContainerProps> = ({
       try {
         setError(null);
         setLoading(true);
-        const url = qlikService.buildSingleObjectUrl(objectId, {
-          theme: 'horizon',
-          opt: ['ctxmenu', 'currsel'],
+        if (!containerRef.current) {
+          return;
+        }
+
+        if (teardownRef.current) {
+          teardownRef.current();
+          teardownRef.current = null;
+        }
+
+        const tearDown = await qlikService.renderVisualization({
+          element: containerRef.current,
+          objectId,
         });
-        setIframeSrc(url);
-        setIframeKey((key) => key + 1);
+
+        if (!isActive) {
+          tearDown?.();
+          return;
+        }
+
+        teardownRef.current = tearDown;
+        setLoading(false);
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'Unable to build object URL');
+        setError(err instanceof Error ? err.message : 'Unable to render Qlik visualization');
         setLoading(false);
       }
     };
 
     const handleConnected = () => {
-      applyIframeSrc();
+      void renderVisualization();
     };
 
     const handleDisconnected = () => {
       if (!isActive) {
         return;
       }
-      setIframeSrc(null);
+      if (teardownRef.current) {
+        teardownRef.current();
+        teardownRef.current = null;
+      }
+      if (containerRef.current) {
+        containerRef.current.innerHTML = '';
+      }
       setLoading(true);
     };
 
@@ -68,12 +88,16 @@ export const QlikObjectContainer: React.FC<QlikObjectContainerProps> = ({
     qlikService.on('disconnected', handleDisconnected);
 
     // Attempt immediately in case we're already connected.
-    applyIframeSrc();
+    void renderVisualization();
 
     return () => {
       isActive = false;
       qlikService.off('connected', handleConnected);
       qlikService.off('disconnected', handleDisconnected);
+      if (teardownRef.current) {
+        teardownRef.current();
+        teardownRef.current = null;
+      }
     };
   }, [objectId]);
 
@@ -91,23 +115,8 @@ export const QlikObjectContainer: React.FC<QlikObjectContainerProps> = ({
       <div
         ref={containerRef}
         style={{ height, position: 'relative' }}
-        className="bg-gradient-subtle rounded-lg border border-border overflow-hidden flex items-center justify-center"
+        className="bg-gradient-subtle rounded-lg border border-border overflow-hidden"
       >
-        {iframeSrc && !error && (
-          <iframe
-            key={`${iframeSrc}-${iframeKey}`}
-            src={iframeSrc}
-            title={title || objectId}
-            className="w-full h-full border-0"
-            onLoad={() => setLoading(false)}
-            onError={() => {
-              setError('Failed to load visualization from Qlik Sense');
-              setLoading(false);
-            }}
-            allowFullScreen
-          />
-        )}
-
         {loading && (
           <div className="absolute inset-0 flex flex-col gap-4 p-6 bg-background/80 backdrop-blur-sm">
             <Skeleton className="h-6 w-1/2" />

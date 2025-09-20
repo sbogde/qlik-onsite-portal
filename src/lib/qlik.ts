@@ -1,5 +1,6 @@
 import enigma from "enigma.js";
 import bundledSchema from "enigma.js/schemas/12.612.0.json" with { type: "json" };
+import { embed } from "@nebula.js/stardust";
 
 export interface QlikConfig {
   host: string;
@@ -21,6 +22,7 @@ class QlikService {
   private config: QlikConfig | null = null;
   private listeners: Record<string, Set<(...args: any[]) => void>> = {};
   private identity = `onsite-portal-${Math.random().toString(36).slice(2, 8)}`;
+  private nebula: ReturnType<typeof embed> | null = null;
 
   async connect(config: QlikConfig): Promise<boolean> {
     try {
@@ -42,6 +44,13 @@ class QlikService {
 
       const qix = await this.session.open();
       this.app = await qix.openDoc(config.appId);
+
+      this.nebula = embed(this.app, {
+        context: {
+          theme: "horizon",
+          language: "en-US",
+        },
+      });
 
       this.emit('connected', { config: this.config, app: this.app });
 
@@ -106,6 +115,14 @@ class QlikService {
       await this.session.close();
       this.session = null;
       this.app = null;
+      if (this.nebula) {
+        try {
+          await this.nebula.destroy?.();
+        } catch (error) {
+          console.warn("Failed to destroy nebula instance:", error);
+        }
+        this.nebula = null;
+      }
       this.emit('disconnected');
     }
   }
@@ -205,6 +222,42 @@ class QlikService {
     }
 
     return `${baseUrl}/single/?${params.toString()}`;
+  }
+
+  async renderVisualization({
+    element,
+    objectId,
+    theme = "horizon",
+    language = "en-US",
+  }: {
+    element: HTMLElement;
+    objectId: string;
+    theme?: string;
+    language?: string;
+  }): Promise<() => void> {
+    if (!this.app) {
+      throw new Error("Not connected to Qlik Sense app");
+    }
+
+    if (!this.nebula) {
+      this.nebula = embed(this.app, {
+        context: {
+          theme,
+          language,
+        },
+      });
+    }
+
+    return this.nebula.render({
+      element,
+      id: objectId,
+      options: {
+        context: {
+          theme,
+          language,
+        },
+      },
+    });
   }
 
   on(event: 'connected' | 'disconnected', handler: (...args: any[]) => void): void {
