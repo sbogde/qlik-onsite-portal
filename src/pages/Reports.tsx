@@ -37,47 +37,47 @@ const Reports: React.FC = () => {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <QlikObjectContainer
-          objectId="reports-summary-1"
-          title="Executive Summary"
-          height="350px"
+          objectId="PUpAQty"
+          title="TY vs LY Sales"
+          height="300px"
         />
         <QlikObjectContainer
-          objectId="reports-metrics-1"
-          title="Key Metrics Report"
-          height="350px"
+          objectId="sKDevh"
+          title="Sales vs Budget %"
+          height="300px"
         />
       </div>
 
       <div className="grid grid-cols-1 gap-6">
         <QlikObjectContainer
-          objectId="reports-detailed-1"
-          title="Detailed Financial Report"
-          height="500px"
+          objectId="dNmwJzh"
+          title="Sales"
+          height="300px"
         />
       </div>
 
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
         <QlikObjectContainer
-          objectId="reports-trend-1"
-          title="Trend Analysis"
-          height="300px"
+          objectId="GmcMk"
+          title="Sales by State"
+          height="320px"
         />
         <QlikObjectContainer
-          objectId="reports-comparison-1"
-          title="Period Comparison"
-          height="300px"
+          objectId="kdpJKE"
+          title="Sales Quantity by Sales Rep"
+          height="320px"
         />
         <QlikObjectContainer
-          objectId="reports-forecast-1"
-          title="Forecast Report"
-          height="300px"
+          objectId="qdQMSbX"
+          title="Sales Reps Sales Variance"
+          height="320px"
         />
       </div>
 
       <div className="grid grid-cols-1 gap-6">
         <QlikObjectContainer
-          objectId="reports-data-table"
-          title="Raw Data Export"
+          objectId="SeYrbD"
+          title="Budget $"
           height="400px"
         />
       </div>

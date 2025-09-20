@@ -22,39 +22,71 @@ export const QlikObjectContainer: React.FC<QlikObjectContainerProps> = ({
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const loadQlikObject = async () => {
+    let isActive = true;
+    let unsubscribe: (() => void) | undefined;
+
+    const initialise = async () => {
       try {
         setLoading(true);
         setError(null);
 
-        // Import qlikService dynamically to avoid circular dependencies
         const { qlikService } = await import('@/lib/qlik');
-        
-        if (!qlikService.isConnected()) {
-          throw new Error('Not connected to Qlik Sense. Please configure connection first.');
-        }
 
-        // Get the actual Qlik object using the hub object ID
-        const result = await qlikService.getObject(objectId);
-        
-        if (containerRef.current && result.object) {
-          // Clear the container
-          containerRef.current.innerHTML = '';
-          
-          // Show the object (this will embed the actual Qlik visualization)
-          await result.object.show(containerRef.current);
-        }
+        const renderObject = async () => {
+          try {
+            const result = await qlikService.getObject(objectId);
 
-        setLoading(false);
+            if (containerRef.current && result.object) {
+              containerRef.current.innerHTML = '';
+              await result.object.show(containerRef.current);
+            }
+
+            if (isActive) {
+              setLoading(false);
+            }
+          } catch (loadError) {
+            if (!isActive) {
+              return;
+            }
+            setError(
+              loadError instanceof Error ? loadError.message : 'Unknown error occurred'
+            );
+            setLoading(false);
+          }
+        };
+
+        if (qlikService.isConnected()) {
+          await renderObject();
+        } else {
+          const handleConnected = () => {
+            if (!isActive) {
+              return;
+            }
+            void renderObject();
+          };
+
+          qlikService.on('connected', handleConnected);
+          unsubscribe = () => qlikService.off('connected', handleConnected);
+        }
       } catch (err) {
+        if (!isActive) {
+          return;
+        }
         setError(err instanceof Error ? err.message : 'Unknown error occurred');
         setLoading(false);
       }
     };
 
     if (objectId && containerRef.current) {
-      loadQlikObject();
+      void initialise();
     }
+
+    return () => {
+      isActive = false;
+      if (unsubscribe) {
+        unsubscribe();
+      }
+    };
   }, [objectId]);
 
   if (loading) {

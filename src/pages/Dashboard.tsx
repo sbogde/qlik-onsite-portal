@@ -14,39 +14,39 @@ const Dashboard: React.FC = () => {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <QlikObjectContainer
-          objectId="sales-kpi"
-          title="Sales KPI Overview"
+          objectId="JRNGq"
+          title="Margin %"
           height="300px"
         />
         <QlikObjectContainer
-          objectId="revenue-trend"
-          title="Revenue Trends"
+          objectId="JRVHPjJ"
+          title="Sales Over Time"
           height="300px"
         />
       </div>
 
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
         <QlikObjectContainer
-          objectId="product-performance"
-          title="Product Performance"
+          objectId="PJTJWqx"
+          title="Sales $ by Product"
           height="350px"
         />
         <QlikObjectContainer
-          objectId="regional-sales"
-          title="Regional Sales"
+          objectId="zPERD"
+          title="Sales by State"
           height="350px"
         />
         <QlikObjectContainer
-          objectId="customer-segments"
-          title="Customer Segments"
+          objectId="ngAuD"
+          title="Sales by Channel"
           height="350px"
         />
       </div>
 
       <div className="grid grid-cols-1 gap-6">
         <QlikObjectContainer
-          objectId="top-products-table"
-          title="Top Performing Products"
+          objectId="RSfXpWZ"
+          title="TY Sales"
           height="400px"
         />
       </div>

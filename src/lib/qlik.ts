@@ -19,6 +19,7 @@ class QlikService {
   private session: any = null;
   private app: any = null;
   private config: QlikConfig | null = null;
+  private listeners: Record<string, Set<(...args: any[]) => void>> = {};
 
   async connect(config: QlikConfig): Promise<boolean> {
     try {
@@ -40,6 +41,8 @@ class QlikService {
 
       const qix = await this.session.open();
       this.app = await qix.openDoc(config.appId);
+
+      this.emit('connected', { config: this.config, app: this.app });
 
       return true;
     } catch (error) {
@@ -102,6 +105,7 @@ class QlikService {
       await this.session.close();
       this.session = null;
       this.app = null;
+      this.emit('disconnected');
     }
   }
 
@@ -156,6 +160,27 @@ class QlikService {
 
   isConnected(): boolean {
     return this.session !== null && this.app !== null;
+  }
+
+  on(event: 'connected' | 'disconnected', handler: (...args: any[]) => void): void {
+    if (!this.listeners[event]) {
+      this.listeners[event] = new Set();
+    }
+    this.listeners[event]!.add(handler);
+  }
+
+  off(event: 'connected' | 'disconnected', handler: (...args: any[]) => void): void {
+    this.listeners[event]?.delete(handler);
+  }
+
+  private emit(event: 'connected' | 'disconnected', ...args: any[]): void {
+    this.listeners[event]?.forEach((handler) => {
+      try {
+        handler(...args);
+      } catch (err) {
+        console.warn(`Listener for ${event} failed:`, err);
+      }
+    });
   }
 }
 

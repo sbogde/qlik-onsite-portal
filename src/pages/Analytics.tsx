@@ -11,42 +11,63 @@ const Analytics: React.FC = () => {
 
       <div className="grid grid-cols-1 gap-6">
         <QlikObjectContainer
-          objectId="analytics-main-1"
-          title="Advanced Time Series Analysis"
+          objectId="WSPHg"
+          title="Budget Over Time"
           height="450px"
         />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <QlikObjectContainer
-          objectId="analytics-scatter-1"
-          title="Correlation Analysis"
+          objectId="yCUgsJ"
+          title="Sales vs Margin"
           height="400px"
         />
         <QlikObjectContainer
-          objectId="analytics-heatmap-1"
-          title="Performance Heatmap"
+          objectId="mYPpJB"
+          title="Sales Qty by Sales Rep"
           height="400px"
         />
       </div>
 
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
         <QlikObjectContainer
-          objectId="analytics-funnel-1"
-          title="Conversion Funnel"
+          objectId="jujzX"
+          title="Central Margin %"
           height="350px"
         />
         <QlikObjectContainer
-          objectId="analytics-waterfall-1"
-          title="Waterfall Analysis"
+          objectId="mkQXr"
+          title="Northeast Margin %"
           height="350px"
         />
       </div>
 
       <div className="grid grid-cols-1 gap-6">
         <QlikObjectContainer
-          objectId="analytics-detailed-table"
-          title="Detailed Analytics Data"
+          objectId="ycEcd"
+          title="Southern Margin %"
+          height="350px"
+        />
+      </div>
+
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+        <QlikObjectContainer
+          objectId="PbCMeyM"
+          title="Western Margin %"
+          height="350px"
+        />
+        <QlikObjectContainer
+          objectId="RgRdrZ"
+          title="YOY Sales by Customer"
+          height="350px"
+        />
+      </div>
+
+      <div className="grid grid-cols-1 gap-6">
+        <QlikObjectContainer
+          objectId="PwaUu"
+          title="Budget $"
           height="500px"
         />
       </div>

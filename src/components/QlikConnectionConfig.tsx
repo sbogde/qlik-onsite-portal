@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -18,35 +18,25 @@ interface ConnectionStatus {
 }
 
 export const QlikConnectionConfig: React.FC = () => {
-  const [status, setStatus] = useState<ConnectionStatus>({
-    connected: false,
-    loading: false,
-    error: null
-  });
-  const [config, setConfig] = useState({
-    host: '',
-    port: 4848,
-    appId: '',
-    secure: false
-  });
-  const { toast } = useToast();
+  const consumerSalesDemo = {
+    name: 'Consumer Sales Demo',
+    description: 'Retail analytics with sales, products, and customer data',
+    host: 'sense-demo.qlik.com',
+    port: 443,
+    appId: '372cbc85-f7fb-4db6-a620-9a5367845dce',
+    secure: true,
+    objectIds: {
+      marginKpi: 'JRNGq',
+      salesOverTime: 'JRVHPjJ',
+      salesByProduct: 'PJTJWqx',
+      salesByState: 'zPERD',
+      salesByChannel: 'ngAuD',
+      tySalesTable: 'RSfXpWZ'
+    }
+  } as const;
 
-  // Pre-configured demo environments
   const demoConfigs = [
-    {
-      name: 'Consumer Sales Demo',
-      description: 'Retail analytics with sales, products, and customer data',
-      host: 'sense-demo.qlik.com',
-      port: 443,
-      appId: '372cbc85-f7fb-4db6-a620-9a5367845dce',
-      secure: true,
-      objectIds: {
-        'sales-kpi': 'Sales KPI',
-        'product-trends': 'Product Performance',
-        'customer-analysis': 'Customer Segments',
-        'regional-sales': 'Regional Breakdown'
-      }
-    },
+    consumerSalesDemo,
     {
       name: 'Local Qlik Sense',
       description: 'Connect to your local Qlik Sense Desktop or Server',
@@ -58,8 +48,27 @@ export const QlikConnectionConfig: React.FC = () => {
     }
   ];
 
-  const handleConnect = async () => {
-    if (!config.host || !config.appId) {
+  const defaultConfig = {
+    host: consumerSalesDemo.host,
+    port: consumerSalesDemo.port,
+    appId: consumerSalesDemo.appId,
+    secure: consumerSalesDemo.secure
+  };
+
+  const [status, setStatus] = useState<ConnectionStatus>({
+    connected: false,
+    loading: false,
+    error: null
+  });
+  const [config, setConfig] = useState(defaultConfig);
+  const autoConnectRef = useRef(false);
+  const { toast } = useToast();
+
+  const connectToQlik = async (
+    connectionConfig: typeof config,
+    { silent }: { silent?: boolean } = {}
+  ) => {
+    if (!connectionConfig.host || !connectionConfig.appId) {
       toast({
         title: "Missing Configuration",
         description: "Please provide host and app ID",
@@ -71,7 +80,7 @@ export const QlikConnectionConfig: React.FC = () => {
     setStatus({ connected: false, loading: true, error: null });
 
     try {
-      const success = await qlikService.connect(config);
+      const success = await qlikService.connect(connectionConfig);
       
       if (success) {
         // Get app info to verify connection
@@ -84,11 +93,15 @@ export const QlikConnectionConfig: React.FC = () => {
           appInfo
         });
 
-        toast({
-          title: "Connected Successfully",
-          description: `Connected to ${config.appId} on ${config.host}`,
-          variant: "default"
-        });
+        setConfig(connectionConfig);
+
+        if (!silent) {
+          toast({
+            title: "Connected Successfully",
+            description: `Connected to ${connectionConfig.appId} on ${connectionConfig.host}`,
+            variant: "default"
+          });
+        }
       } else {
         throw new Error('Failed to establish connection');
       }
@@ -100,12 +113,18 @@ export const QlikConnectionConfig: React.FC = () => {
         error: errorMessage
       });
 
-      toast({
-        title: "Connection Failed",
-        description: errorMessage,
-        variant: "destructive"
-      });
+      if (!silent) {
+        toast({
+          title: "Connection Failed",
+          description: errorMessage,
+          variant: "destructive"
+        });
+      }
     }
+  };
+
+  const handleConnect = async () => {
+    await connectToQlik(config);
   };
 
   const handleDisconnect = async () => {
@@ -123,14 +142,36 @@ export const QlikConnectionConfig: React.FC = () => {
     });
   };
 
-  const loadDemoConfig = (demo: typeof demoConfigs[0]) => {
-    setConfig({
+  const loadDemoConfig = (
+    demo: typeof demoConfigs[number],
+    options: { connect?: boolean; silent?: boolean } = {}
+  ) => {
+    const nextConfig = {
       host: demo.host,
       port: demo.port,
       appId: demo.appId,
       secure: demo.secure
-    });
+    };
+
+    setConfig(nextConfig);
+
+    if (options.connect) {
+      void connectToQlik(nextConfig, { silent: options.silent });
+    }
   };
+
+  useEffect(() => {
+    if (autoConnectRef.current) {
+      return;
+    }
+
+    autoConnectRef.current = true;
+    const defaultDemo = demoConfigs[0];
+
+    if (defaultDemo) {
+      loadDemoConfig(defaultDemo, { connect: true, silent: true });
+    }
+  }, []);
 
   return (
     <Card className="shadow-card bg-gradient-subtle">
@@ -165,7 +206,7 @@ export const QlikConnectionConfig: React.FC = () => {
       </CardHeader>
 
       <CardContent className="space-y-6">
-        <Tabs defaultValue="manual" className="w-full">
+        <Tabs defaultValue="demos" className="w-full">
           <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="demos">Demo Configs</TabsTrigger>
             <TabsTrigger value="manual">Manual Setup</TabsTrigger>
@@ -191,7 +232,7 @@ export const QlikConnectionConfig: React.FC = () => {
                       <Button
                         variant="outline"
                         size="sm"
-                        onClick={() => loadDemoConfig(demo)}
+                        onClick={() => loadDemoConfig(demo, { connect: true })}
                       >
                         Load Config
                       </Button>
