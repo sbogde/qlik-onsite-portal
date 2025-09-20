@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -10,6 +10,7 @@ import {
   Database,
   Settings as SettingsIcon
 } from 'lucide-react';
+import { qlikService } from '@/lib/qlik';
 
 const navItems = [
   {
@@ -40,6 +41,23 @@ const navItems = [
 
 export const Navigation: React.FC = () => {
   const location = useLocation();
+  const [connected, setConnected] = useState(qlikService.isConnected());
+
+  useEffect(() => {
+    const handleConnected = () => setConnected(true);
+    const handleDisconnected = () => setConnected(false);
+
+    qlikService.on('connected', handleConnected);
+    qlikService.on('disconnected', handleDisconnected);
+
+    return () => {
+      qlikService.off('connected', handleConnected);
+      qlikService.off('disconnected', handleDisconnected);
+    };
+  }, []);
+
+  const indicatorColor = connected ? 'bg-green-500' : 'bg-red-500';
+  const statusText = connected ? 'Connected to Qlik Sense' : 'Disconnected from Qlik Sense';
 
   return (
     <Card className="p-6 shadow-card bg-gradient-subtle">
@@ -87,8 +105,8 @@ export const Navigation: React.FC = () => {
           <span className="text-sm font-medium text-analytics-slate">Connection Status</span>
         </div>
         <div className="flex items-center gap-2">
-          <div className="w-2 h-2 bg-analytics-blue rounded-full animate-pulse"></div>
-          <span className="text-xs text-muted-foreground">Connected to Qlik Sense</span>
+          <div className={`w-2 h-2 rounded-full ${indicatorColor} animate-pulse`}></div>
+          <span className="text-xs text-muted-foreground">{statusText}</span>
         </div>
       </div>
     </Card>
