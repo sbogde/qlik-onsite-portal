@@ -1,5 +1,6 @@
 import React from 'react';
 import { Navigation } from '@/components/Navigation';
+import { AutoConnect } from '@/components/AutoConnect';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -15,6 +16,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
           </div>
           <div className="lg:col-span-3">
             <main className="space-y-6">
+              <AutoConnect />
               {children}
             </main>
           </div>

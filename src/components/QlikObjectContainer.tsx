@@ -22,6 +22,7 @@ export const QlikObjectContainer: React.FC<QlikObjectContainerProps> = ({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const teardownRef = useRef<(() => void) | null>(null);
+  const mountNodeRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     let isActive = true;
@@ -48,10 +49,18 @@ export const QlikObjectContainer: React.FC<QlikObjectContainerProps> = ({
           teardownRef.current = null;
         }
 
-        containerRef.current.innerHTML = '';
+        if (mountNodeRef.current) {
+          containerRef.current.removeChild(mountNodeRef.current);
+          mountNodeRef.current = null;
+        }
+
+        const mountElement = document.createElement('div');
+        mountElement.className = 'w-full h-full';
+        containerRef.current.appendChild(mountElement);
+        mountNodeRef.current = mountElement;
 
         const tearDown = await qlikService.renderVisualization({
-          element: containerRef.current,
+          element: mountElement,
           objectId,
         });
 
@@ -63,6 +72,14 @@ export const QlikObjectContainer: React.FC<QlikObjectContainerProps> = ({
         teardownRef.current = tearDown;
         setLoading(false);
       } catch (err) {
+        if (mountNodeRef.current && containerRef.current?.contains(mountNodeRef.current)) {
+          try {
+            containerRef.current.removeChild(mountNodeRef.current);
+          } catch (removeError) {
+            console.warn('Failed to clean nebula mount node after error:', removeError);
+          }
+          mountNodeRef.current = null;
+        }
         setError(err instanceof Error ? err.message : 'Unable to render Qlik visualization');
         setLoading(false);
       }
@@ -81,7 +98,14 @@ export const QlikObjectContainer: React.FC<QlikObjectContainerProps> = ({
         teardownRef.current = null;
       }
       if (containerRef.current) {
-        containerRef.current.innerHTML = '';
+        if (mountNodeRef.current) {
+          try {
+            containerRef.current.removeChild(mountNodeRef.current);
+          } catch (error) {
+            console.warn('Failed to remove nebula mount node:', error);
+          }
+          mountNodeRef.current = null;
+        }
       }
       setLoading(true);
     };
@@ -99,6 +123,14 @@ export const QlikObjectContainer: React.FC<QlikObjectContainerProps> = ({
       if (teardownRef.current) {
         teardownRef.current();
         teardownRef.current = null;
+      }
+      if (containerRef.current && mountNodeRef.current) {
+        try {
+          containerRef.current.removeChild(mountNodeRef.current);
+        } catch (error) {
+          console.warn('Failed to remove nebula mount node during cleanup:', error);
+        }
+        mountNodeRef.current = null;
       }
     };
   }, [objectId]);

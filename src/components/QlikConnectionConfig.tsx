@@ -6,7 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { qlikService } from '@/lib/qlik';
+import { qlikService, QlikConfig } from '@/lib/qlik';
 import { useToast } from '@/components/ui/use-toast';
 import { Loader2, CheckCircle, AlertCircle, Database, Globe } from 'lucide-react';
 
@@ -17,43 +17,43 @@ interface ConnectionStatus {
   appInfo?: any;
 }
 
+export const consumerSalesDemoConfig: QlikConfig = {
+  host: 'sense-demo.qlik.com',
+  port: 443,
+  appId: '372cbc85-f7fb-4db6-a620-9a5367845dce',
+  secure: true,
+};
+
+export const consumerSalesDemo = {
+  name: 'Consumer Sales Demo',
+  description: 'Retail analytics with sales, products, and customer data',
+  ...consumerSalesDemoConfig,
+  objectIds: {
+    marginKpi: 'JRNGq',
+    salesOverTime: 'JRVHPjJ',
+    salesByProduct: 'PJTJWqx',
+    salesByState: 'zPERD',
+    salesByChannel: 'ngAuD',
+    tySalesTable: 'RSfXpWZ'
+  }
+} as const;
+
+const demoConfigs = [
+  consumerSalesDemo,
+  {
+    name: 'Local Qlik Sense',
+    description: 'Connect to your local Qlik Sense Desktop or Server',
+    host: 'localhost',
+    port: 4848,
+    appId: '',
+    secure: false,
+    objectIds: {}
+  }
+];
+
+const defaultConfig: QlikConfig = { ...consumerSalesDemoConfig };
+
 export const QlikConnectionConfig: React.FC = () => {
-  const consumerSalesDemo = {
-    name: 'Consumer Sales Demo',
-    description: 'Retail analytics with sales, products, and customer data',
-    host: 'sense-demo.qlik.com',
-    port: 443,
-    appId: '372cbc85-f7fb-4db6-a620-9a5367845dce',
-    secure: true,
-    objectIds: {
-      marginKpi: 'JRNGq',
-      salesOverTime: 'JRVHPjJ',
-      salesByProduct: 'PJTJWqx',
-      salesByState: 'zPERD',
-      salesByChannel: 'ngAuD',
-      tySalesTable: 'RSfXpWZ'
-    }
-  } as const;
-
-  const demoConfigs = [
-    consumerSalesDemo,
-    {
-      name: 'Local Qlik Sense',
-      description: 'Connect to your local Qlik Sense Desktop or Server',
-      host: 'localhost',
-      port: 4848,
-      appId: '',
-      secure: false,
-      objectIds: {}
-    }
-  ];
-
-  const defaultConfig = {
-    host: consumerSalesDemo.host,
-    port: consumerSalesDemo.port,
-    appId: consumerSalesDemo.appId,
-    secure: consumerSalesDemo.secure
-  };
 
   const [status, setStatus] = useState<ConnectionStatus>({
     connected: false,

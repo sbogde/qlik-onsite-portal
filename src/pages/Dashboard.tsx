@@ -1,6 +1,5 @@
 import React from 'react';
 import { QlikObjectContainer } from '@/components/QlikObjectContainer';
-import { QlikConnectionConfig } from '@/components/QlikConnectionConfig';
 
 const Dashboard: React.FC = () => {
   return (
@@ -9,8 +8,6 @@ const Dashboard: React.FC = () => {
         <h1 className="text-3xl font-bold text-analytics-slate mb-2">Dashboard</h1>
         <p className="text-muted-foreground">Overview of key performance indicators and metrics</p>
       </div>
-
-      <QlikConnectionConfig />
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <QlikObjectContainer

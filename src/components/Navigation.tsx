@@ -7,10 +7,17 @@ import {
   LineChart, 
   FileText, 
   Activity,
-  Database 
+  Database,
+  Settings as SettingsIcon
 } from 'lucide-react';
 
 const navItems = [
+  {
+    path: '/settings',
+    label: 'Settings',
+    icon: SettingsIcon,
+    description: 'Connection configuration'
+  },
   {
     path: '/',
     label: 'Dashboard',
