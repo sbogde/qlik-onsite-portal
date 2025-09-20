@@ -38,7 +38,7 @@ export const QlikConnectionConfig: React.FC = () => {
       description: 'Retail analytics with sales, products, and customer data',
       host: 'sense-demo.qlik.com',
       port: 443,
-      appId: 'ConsumerSales.qvf',
+      appId: '372cbc85-f7fb-4db6-a620-9a5367845dce',
       secure: true,
       objectIds: {
         'sales-kpi': 'Sales KPI',
