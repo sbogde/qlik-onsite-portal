@@ -16,11 +16,32 @@ export interface QlikObject {
   title?: string;
 }
 
-class QlikService {
+type EventName = "connected" | "disconnected";
+type Listener = (...args: any[]) => void;
+
+export interface QlikServiceContract {
+  connect(config: QlikConfig): Promise<boolean>;
+  getAppInfo(): Promise<any>;
+  getObject(objectId: string): Promise<any>;
+  createSessionObject(definition: any): Promise<any>;
+  disconnect(): Promise<void>;
+  isConnected(): boolean;
+  getConfig(): Readonly<QlikConfig> | null;
+  getIdentity(): string;
+  buildSingleObjectUrl(objectId: string, options?: { theme?: string; opt?: string[]; identity?: string; }): string;
+  renderVisualization(args: { element: HTMLElement; objectId: string; theme?: string; language?: string }): Promise<() => void>;
+  on(event: EventName, handler: Listener): void;
+  off(event: EventName, handler: Listener): void;
+}
+
+class QlikService implements QlikServiceContract {
   private session: any = null;
   private app: any = null;
   private config: QlikConfig | null = null;
-  private listeners: Record<string, Set<(...args: any[]) => void>> = {};
+  private listeners: Record<EventName, Set<Listener>> = {
+    connected: new Set(),
+    disconnected: new Set(),
+  };
   private identity = `onsite-portal-${Math.random().toString(36).slice(2, 8)}`;
   private nebula: ReturnType<typeof embed> | null = null;
 
@@ -90,7 +111,7 @@ class QlikService {
         },
       });
 
-      this.emit('connected', { config: this.config, app: this.app });
+      this.emit("connected", { config: this.config, app: this.app });
 
       return true;
     } catch (error) {
@@ -161,7 +182,7 @@ class QlikService {
         }
         this.nebula = null;
       }
-      this.emit('disconnected');
+      this.emit("disconnected");
     }
   }
 
@@ -306,19 +327,16 @@ class QlikService {
     };
   }
 
-  on(event: 'connected' | 'disconnected', handler: (...args: any[]) => void): void {
-    if (!this.listeners[event]) {
-      this.listeners[event] = new Set();
-    }
-    this.listeners[event]!.add(handler);
+  on(event: EventName, handler: Listener): void {
+    this.listeners[event].add(handler);
   }
 
-  off(event: 'connected' | 'disconnected', handler: (...args: any[]) => void): void {
-    this.listeners[event]?.delete(handler);
+  off(event: EventName, handler: Listener): void {
+    this.listeners[event].delete(handler);
   }
 
-  private emit(event: 'connected' | 'disconnected', ...args: any[]): void {
-    this.listeners[event]?.forEach((handler) => {
+  private emit(event: EventName, ...args: any[]): void {
+    this.listeners[event].forEach((handler) => {
       try {
         handler(...args);
       } catch (err) {
@@ -328,4 +346,116 @@ class QlikService {
   }
 }
 
-export const qlikService = new QlikService();
+class MockQlikService implements QlikServiceContract {
+  private config: QlikConfig | null = null;
+  private connected = false;
+  private identity = "mock-qa";
+  private listeners: Record<EventName, Set<Listener>> = {
+    connected: new Set(),
+    disconnected: new Set(),
+  };
+
+  async connect(config: QlikConfig): Promise<boolean> {
+    this.config = config;
+    this.connected = true;
+    await new Promise((resolve) => setTimeout(resolve, 50));
+    this.emit("connected", { config, app: { id: config.appId } });
+    return true;
+  }
+
+  async getAppInfo(): Promise<any> {
+    return {
+      title: "Mock Consumer Sales",
+      description: "QA mock application",
+      modified: new Date().toISOString(),
+      objects: [],
+    };
+  }
+
+  async getObject(objectId: string): Promise<any> {
+    const layout = { qInfo: { qId: objectId }, title: `Mock ${objectId}` };
+    return {
+      object: {
+        show: async (element: HTMLElement) => {
+          const placeholder = document.createElement("div");
+          placeholder.dataset.testid = `mock-object-${objectId}`;
+          placeholder.textContent = `Mock object ${objectId}`;
+          element.appendChild(placeholder);
+        },
+        getLayout: async () => layout,
+      },
+      layout,
+    };
+  }
+
+  async createSessionObject(definition: any): Promise<any> {
+    const objectId = definition?.qInfo?.qId || "mock-session-object";
+    return this.getObject(objectId);
+  }
+
+  async disconnect(): Promise<void> {
+    if (!this.connected) {
+      return;
+    }
+    this.connected = false;
+    this.emit("disconnected");
+  }
+
+  isConnected(): boolean {
+    return this.connected;
+  }
+
+  getConfig(): Readonly<QlikConfig> | null {
+    return this.config;
+  }
+
+  getIdentity(): string {
+    return this.identity;
+  }
+
+  buildSingleObjectUrl(objectId: string): string {
+    return `mock://object/${objectId}`;
+  }
+
+  async renderVisualization({ element, objectId }: { element: HTMLElement; objectId: string; theme?: string; language?: string; }): Promise<() => void> {
+    const viz = document.createElement("div");
+    viz.dataset.testid = `mock-viz-${objectId}`;
+    viz.className = "mock-qlik-viz";
+    viz.textContent = `Visualization ${objectId}`;
+    element.appendChild(viz);
+    return () => {
+      if (element.contains(viz)) {
+        element.removeChild(viz);
+      }
+    };
+  }
+
+  on(event: EventName, handler: Listener): void {
+    this.listeners[event].add(handler);
+  }
+
+  off(event: EventName, handler: Listener): void {
+    this.listeners[event].delete(handler);
+  }
+
+  private emit(event: EventName, ...args: any[]): void {
+    this.listeners[event].forEach((handler) => {
+      try {
+        handler(...args);
+      } catch (err) {
+        console.warn(`Mock listener for ${event} failed:`, err);
+      }
+    });
+  }
+}
+
+const createQlikService = (): QlikServiceContract => {
+  if (import.meta.env.VITE_QA_MOCK === "true") {
+    console.info("Qlik service running in QA mock mode");
+    return new MockQlikService();
+  }
+
+  return new QlikService();
+};
+
+export const qlikService: QlikServiceContract = createQlikService();

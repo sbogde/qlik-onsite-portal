@@ -186,6 +186,10 @@ export const QlikConnectionConfig: React.FC = () => {
           </div>
           <div className="ml-auto">
             <Badge 
+              role="status"
+              aria-live="polite"
+              aria-label={status.connected ? "Connected" : "Disconnected"}
+              data-testid="connection-status"
               variant={status.connected ? "default" : "secondary"} 
               className={status.connected ? "bg-green-500 hover:bg-green-600" : ""}
             >
