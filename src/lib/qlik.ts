@@ -210,6 +210,8 @@ class QlikService implements QlikServiceContract {
     const baseUrl = this.getBaseUrl();
     if (baseUrl) {
       const candidates = [
+        `${baseUrl}/resources/hub/external/enigma/enigma-schema.json`,
+        `${baseUrl}/resources/hub/external/enigma/enigma.json`,
         `${baseUrl}/resources/schemas/enigma.json`,
         `${baseUrl}/dev-hub/engine-api-explorer/dist/enigma.json`,
       ];
