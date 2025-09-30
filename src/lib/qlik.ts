@@ -1,5 +1,5 @@
 import enigma from "enigma.js";
-import bundledSchema from "enigma.js/schemas/12.612.0.json" with { type: "json" };
+import bundledSchema from "enigma.js/schemas/12.170.2.json";
 import { embed } from "@nebula.js/stardust";
 
 export interface QlikConfig {
@@ -52,10 +52,8 @@ class QlikService implements QlikServiceContract {
       console.log("config", config);
       console.log("baseUrl", this.getBaseUrl());
 
-      const schema = await this.loadSchema();
-
       this.session = enigma.create({
-        schema,
+        schema: this.loadSchema(),
         url: this.getWebsocketUrl(),
         createSocket: (url: string) => new WebSocket(url),
         protocol: {
@@ -202,38 +200,7 @@ class QlikService implements QlikServiceContract {
     return `${protocol}://${this.config.host}${port}${prefix}/app/${this.config.appId}`;
   }
 
-  private async loadSchema(): Promise<any> {
-    if (!this.config) {
-      throw new Error("Configuration is not set");
-    }
-
-    const baseUrl = this.getBaseUrl();
-    if (baseUrl) {
-      const candidates = [
-        `${baseUrl}/resources/hub/external/enigma/enigma-schema.json`,
-        `${baseUrl}/resources/hub/external/enigma/enigma.json`,
-        `${baseUrl}/resources/schemas/enigma.json`,
-        `${baseUrl}/dev-hub/engine-api-explorer/dist/enigma.json`,
-      ];
-
-      for (const url of candidates) {
-        try {
-          const response = await fetch(url);
-          if (response.ok) {
-            const remoteSchema = await response.json();
-            if (remoteSchema?.enigma) {
-              return remoteSchema;
-            }
-          }
-        } catch (error) {
-          console.warn(`Schema fetch failed for ${url}:`, error);
-        }
-      }
-    }
-
-    console.info(
-      `Falling back to bundled Qlik Engine schema ${bundledSchema.enigma}`
-    );
+  private loadSchema(): any {
     return bundledSchema;
   }
 

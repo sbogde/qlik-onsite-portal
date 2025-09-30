@@ -17,11 +17,40 @@ interface ConnectionStatus {
   appInfo?: any;
 }
 
+const APP_ID = '372cbc85-f7fb-4db6-a620-9a5367845dce';
+
+const inferredProxy = (() => {
+  const wsUrl = import.meta.env.VITE_QLIK_WS_URL;
+  try {
+    if (wsUrl) {
+      const parsed = new URL(wsUrl);
+      const secure = parsed.protocol === 'wss:';
+      const port = parsed.port
+        ? Number(parsed.port)
+        : secure
+          ? 443
+          : 80;
+
+      return {
+        host: parsed.hostname,
+        port,
+        secure,
+      } satisfies Pick<QlikConfig, 'host' | 'port' | 'secure'>;
+    }
+  } catch (error) {
+    console.warn('Failed to parse VITE_QLIK_WS_URL for proxy defaults', error);
+  }
+
+  return {
+    host: 'localhost',
+    port: 3000,
+    secure: false,
+  } satisfies Pick<QlikConfig, 'host' | 'port' | 'secure'>;
+})();
+
 export const consumerSalesDemoConfig: QlikConfig = {
-  host: 'sense-demo.qlik.com',
-  port: 443,
-  appId: '372cbc85-f7fb-4db6-a620-9a5367845dce',
-  secure: true,
+  ...inferredProxy,
+  appId: APP_ID,
 };
 
 export const consumerSalesDemo = {
@@ -39,7 +68,21 @@ export const consumerSalesDemo = {
 } as const;
 
 const demoConfigs = [
-  consumerSalesDemo,
+  {
+    name: 'Consumer Sales via Proxy',
+    description: 'Connect through the local/proxy bridge (recommended)',
+    ...consumerSalesDemoConfig,
+    objectIds: consumerSalesDemo.objectIds,
+  },
+  {
+    name: 'Consumer Sales (Direct to Qlik Cloud)',
+    description: 'Bypass the proxy and connect to sense-demo.qlik.com',
+    host: 'sense-demo.qlik.com',
+    port: 443,
+    appId: APP_ID,
+    secure: true,
+    objectIds: consumerSalesDemo.objectIds,
+  },
   {
     name: 'Local Qlik Sense',
     description: 'Connect to your local Qlik Sense Desktop or Server',
