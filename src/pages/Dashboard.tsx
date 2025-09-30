@@ -1,6 +1,13 @@
 import React from 'react';
 import { QlikObjectContainer } from '@/components/QlikObjectContainer';
 
+import { useEffect } from 'react';
+import { testQlikConnection } from '@/qlik/session';
+
+useEffect(() => {
+  testQlikConnection().catch((err) => console.error('Qlik test failed:', err));
+}, []);
+
 const Dashboard: React.FC = () => {
   return (
     <div className="space-y-6">
