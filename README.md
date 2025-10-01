@@ -16,6 +16,7 @@ React + Vite mashup that brokers access to the Qlik Sense "Consumer Sales" demo 
 - `src/lib/qlik.ts` – service wrapper that opens the Qlik doc through the proxy, renders objects with Nebula, and emits `connected` / `disconnected` events.
 - `src/qlik/session.ts` – lightweight helper for ad-hoc enigma global connections (bundled schema + WS URL from env).
 - `src/qlik/api.ts` – fetch wrapper that always adds `x-proxy-token` for REST calls via the proxy.
+- `src/qlik/url.ts` – shared helpers for proxy token access and appending it to WebSocket URLs.
 - `src/components/QlikObjectContainer.tsx` – reusable container that mounts/destroys Qlik objects and displays skeletons/errors.
 - `src/pages/Dashboard.tsx` – default route rendering KPIs/KPIs and triggering the connection check on load.
 - `public/qlik-favicon.svg` – custom tab icon styled after the Qlik mark.
@@ -35,6 +36,8 @@ VITE_QLIK_HTTP_BASE=http://localhost:3000/api
 VITE_QLIK_WS_URL=ws://localhost:3000/app/372cbc85-f7fb-4db6-a620-9a5367845dce
 VITE_PROXY_TOKEN=your_secret_here
 ```
+
+When `VITE_PROXY_TOKEN` is set the frontend automatically appends `?token=<value>` to the WebSocket URL while continuing to send the header on REST calls.
 
 When deploying behind Cloudflare or another remote proxy, switch to the hosted URLs, e.g.:
 

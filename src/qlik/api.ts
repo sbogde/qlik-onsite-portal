@@ -1,5 +1,7 @@
+import { getProxyToken } from '@/qlik/url';
+
 const BASE = import.meta.env.VITE_QLIK_HTTP_BASE ?? 'http://localhost:3000/api';
-const TOKEN = import.meta.env.VITE_PROXY_TOKEN ?? '';
+const TOKEN = getProxyToken();
 
 type ProxyInit = RequestInit & { headers?: HeadersInit };
 

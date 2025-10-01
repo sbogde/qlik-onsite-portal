@@ -1,6 +1,7 @@
 import enigma from "enigma.js";
 import bundledSchema from "enigma.js/schemas/12.170.2.json";
 import { embed } from "@nebula.js/stardust";
+import { withProxyToken } from "@/qlik/url";
 
 export interface QlikConfig {
   host: string;
@@ -197,7 +198,8 @@ class QlikService implements QlikServiceContract {
     const protocol = this.config.secure ? "wss" : "ws";
     const port = this.config.port ? `:${this.config.port}` : "";
     const prefix = this.config.prefix || "";
-    return `${protocol}://${this.config.host}${port}${prefix}/app/${this.config.appId}`;
+    const baseUrl = `${protocol}://${this.config.host}${port}${prefix}/app/${this.config.appId}`;
+    return withProxyToken(baseUrl);
   }
 
   private loadSchema(): any {
