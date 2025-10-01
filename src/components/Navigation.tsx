@@ -2,23 +2,16 @@ import React, { useEffect, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { 
-  BarChart3, 
-  LineChart, 
-  FileText, 
+import {
+  BarChart3,
+  LineChart,
+  FileText,
   Activity,
-  Database,
-  Settings as SettingsIcon
+  Database
 } from 'lucide-react';
 import { qlikService } from '@/lib/qlik';
 
 const navItems = [
-  {
-    path: '/settings',
-    label: 'Settings',
-    icon: SettingsIcon,
-    description: 'Connection configuration'
-  },
   {
     path: '/',
     label: 'Dashboard',
