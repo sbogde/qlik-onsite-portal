@@ -1,35 +1,35 @@
-import React, { useEffect, useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
+import React, { useEffect, useState } from "react";
+import { Link, useLocation } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 import {
   BarChart3,
   LineChart,
   FileText,
   Activity,
-  Database
-} from 'lucide-react';
-import { qlikService } from '@/lib/qlik';
+  Database,
+} from "lucide-react";
+import { qlikService } from "@/lib/qlik";
 
 const navItems = [
   {
-    path: '/',
-    label: 'Dashboard',
+    path: "/",
+    label: "Dashboard",
     icon: BarChart3,
-    description: 'Main overview and KPIs'
+    description: "Main overview and KPIs",
   },
   {
-    path: '/analytics',
-    label: 'Analytics',
+    path: "/analytics",
+    label: "Analytics",
     icon: LineChart,
-    description: 'Deep dive analysis'
+    description: "Deep dive analysis",
   },
   {
-    path: '/reports',
-    label: 'Reports',
+    path: "/reports",
+    label: "Reports",
     icon: FileText,
-    description: 'Detailed reporting'
-  }
+    description: "Detailed reporting",
+  },
 ];
 
 export const Navigation: React.FC = () => {
@@ -40,17 +40,19 @@ export const Navigation: React.FC = () => {
     const handleConnected = () => setConnected(true);
     const handleDisconnected = () => setConnected(false);
 
-    qlikService.on('connected', handleConnected);
-    qlikService.on('disconnected', handleDisconnected);
+    qlikService.on("connected", handleConnected);
+    qlikService.on("disconnected", handleDisconnected);
 
     return () => {
-      qlikService.off('connected', handleConnected);
-      qlikService.off('disconnected', handleDisconnected);
+      qlikService.off("connected", handleConnected);
+      qlikService.off("disconnected", handleDisconnected);
     };
   }, []);
 
-  const indicatorColor = connected ? 'bg-green-500' : 'bg-red-500';
-  const statusText = connected ? 'Connected to Qlik Sense' : 'Disconnected from Qlik Sense';
+  const indicatorColor = connected ? "bg-green-500" : "bg-red-500";
+  const statusText = connected
+    ? "Connected to Qlik Sense"
+    : "Disconnected from Qlik Sense";
 
   return (
     <Card className="p-6 shadow-card bg-gradient-subtle">
@@ -68,21 +70,25 @@ export const Navigation: React.FC = () => {
         {navItems.map((item) => {
           const Icon = item.icon;
           const isActive = location.pathname === item.path;
-          
+
           return (
             <Link key={item.path} to={item.path}>
               <Button
                 variant={isActive ? "default" : "ghost"}
                 className={`w-full justify-start gap-3 h-auto p-4 transition-spring ${
-                  isActive 
-                    ? "bg-gradient-analytics shadow-analytics text-white" 
+                  isActive
+                    ? "bg-gradient-analytics shadow-analytics text-white"
                     : "hover:bg-accent/50 hover:shadow-card"
                 }`}
               >
                 <Icon className="h-5 w-5" />
                 <div className="text-left">
                   <div className="font-medium">{item.label}</div>
-                  <div className={`text-xs ${isActive ? 'text-white/80' : 'text-muted-foreground'}`}>
+                  <div
+                    className={`text-xs ${
+                      isActive ? "text-white/80" : "text-muted-foreground"
+                    }`}
+                  >
                     {item.description}
                   </div>
                 </div>
@@ -95,12 +101,27 @@ export const Navigation: React.FC = () => {
       <div className="mt-8 p-4 bg-accent/30 rounded-lg border border-border/50">
         <div className="flex items-center gap-2 mb-2">
           <Activity className="h-4 w-4 text-analytics-blue" />
-          <span className="text-sm font-medium text-analytics-slate">Connection Status</span>
+          <span className="text-sm font-medium text-analytics-slate">
+            Connection Status
+          </span>
         </div>
         <div className="flex items-center gap-2">
-          <div className={`w-2 h-2 rounded-full ${indicatorColor} animate-pulse`}></div>
+          <div
+            className={`w-2 h-2 rounded-full ${indicatorColor} animate-pulse`}
+          ></div>
           <span className="text-xs text-muted-foreground">{statusText}</span>
         </div>
+        <p className="mt-3 text-[11px] leading-tight text-muted-foreground">
+          Serving visualisations from{" "}
+          <a
+            className="underline decoration-dotted hover:text-analytics-blue"
+            href="https://sense-demo.qlik.com/sense/app/372cbc85-f7fb-4db6-a620-9a5367845dce"
+            target="_blank"
+            rel="noreferrer"
+          >
+            sense-demo.qlik.com
+          </a>
+        </p>
       </div>
     </Card>
   );
