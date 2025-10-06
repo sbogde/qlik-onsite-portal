@@ -646,8 +646,10 @@ class MockQlikService implements QlikServiceContract {
 const createQlikService = (): QlikServiceContract => {
   // Check for mock mode via environment variable, URL parameter, or localStorage
   const urlParams = new URLSearchParams(window.location.search);
-  const forceMock = urlParams.get('mock') === 'true' || localStorage.getItem('qlik-mock-mode') === 'true';
-  
+  const forceMock =
+    urlParams.get("mock") === "true" ||
+    localStorage.getItem("qlik-mock-mode") === "true";
+
   if (import.meta.env.VITE_QA_MOCK === "true" || forceMock) {
     console.info("Qlik service running in QA mock mode");
     return new MockQlikService();
