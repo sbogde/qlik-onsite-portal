@@ -1,11 +1,12 @@
-import { Button } from '@/components/ui/button';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Download, X } from 'lucide-react';
-import { usePWAInstall } from '@/hooks/use-pwa-install';
-import { useState } from 'react';
+import { Button } from "@/components/ui/button";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Download, X } from "lucide-react";
+import { usePWAInstall } from "@/hooks/use-pwa-install";
+import { useState } from "react";
 
 export function InstallPrompt() {
-  const { isInstallable, isInstalled, installApp, canInstall } = usePWAInstall();
+  const { isInstallable, isInstalled, installApp, canInstall } =
+    usePWAInstall();
   const [dismissed, setDismissed] = useState(false);
 
   const handleInstall = async () => {
@@ -33,11 +34,7 @@ export function InstallPrompt() {
             Install this app for a better experience!
           </span>
           <div className="flex gap-2 ml-2">
-            <Button
-              size="sm"
-              onClick={handleInstall}
-              className="h-8 px-3"
-            >
+            <Button size="sm" onClick={handleInstall} className="h-8 px-3">
               Install
             </Button>
             <Button

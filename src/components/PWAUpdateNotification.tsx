@@ -1,22 +1,22 @@
-import { useEffect, useState } from 'react';
-import { useRegisterSW } from 'virtual:pwa-register/react';
-import { Button } from '@/components/ui/button';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { RefreshCw, X } from 'lucide-react';
+import { useEffect, useState } from "react";
+import { useRegisterSW } from "virtual:pwa-register/react";
+import { Button } from "@/components/ui/button";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { RefreshCw, X } from "lucide-react";
 
 export function PWAUpdateNotification() {
   const [showUpdatePrompt, setShowUpdatePrompt] = useState(false);
-  
+
   const {
     offlineReady: [offlineReady, setOfflineReady],
     needRefresh: [needRefresh, setNeedRefresh],
     updateServiceWorker,
   } = useRegisterSW({
     onRegistered(r) {
-      console.log('SW Registered: ' + r);
+      console.log("SW Registered: " + r);
     },
     onRegisterError(error) {
-      console.log('SW registration error', error);
+      console.log("SW registration error", error);
     },
   });
 
@@ -63,13 +63,11 @@ export function PWAUpdateNotification() {
           </AlertDescription>
         </Alert>
       )}
-      
+
       {offlineReady && (
         <Alert className="border-green-200 bg-green-50">
           <AlertDescription className="flex items-center justify-between">
-            <span className="text-sm">
-              App ready to work offline!
-            </span>
+            <span className="text-sm">App ready to work offline!</span>
             <Button
               size="sm"
               variant="ghost"

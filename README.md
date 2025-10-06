@@ -17,7 +17,7 @@ React + Vite PWA (Progressive Web App) mashup that brokers access to the Qlik Se
 ✨ **Install on any device** - Works like a native app  
 🔄 **Automatic updates** - Always get the latest version  
 📱 **Offline support** - Cached content works without internet  
-⚡ **Fast loading** - Instant startup with service worker caching  
+⚡ **Fast loading** - Instant startup with service worker caching
 
 See [PWA_FEATURES.md](./PWA_FEATURES.md) for detailed PWA documentation.
 
