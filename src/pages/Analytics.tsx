@@ -1,12 +1,16 @@
-import React from 'react';
-import { QlikObjectContainer } from '@/components/QlikObjectContainer';
+import React from "react";
+import { QlikObjectContainer } from "@/components/QlikObjectContainer";
 
 const Analytics: React.FC = () => {
   return (
     <div className="space-y-6">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-analytics-slate mb-2">Analytics</h1>
-        <p className="text-muted-foreground">Deep dive analysis and advanced visualizations</p>
+        <h1 className="text-3xl font-bold text-analytics-slate mb-2">
+          Analytics
+        </h1>
+        <p className="text-muted-foreground">
+          Deep dive analysis and advanced visualisations
+        </p>
       </div>
 
       <div className="grid grid-cols-1 gap-6">
@@ -65,11 +69,7 @@ const Analytics: React.FC = () => {
       </div>
 
       <div className="grid grid-cols-1 gap-6">
-        <QlikObjectContainer
-          objectId="PwaUu"
-          title="Budget $"
-          height="500px"
-        />
+        <QlikObjectContainer objectId="PwaUu" title="Budget $" height="500px" />
       </div>
     </div>
   );

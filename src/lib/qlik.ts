@@ -29,8 +29,16 @@ export interface QlikServiceContract {
   isConnected(): boolean;
   getConfig(): Readonly<QlikConfig> | null;
   getIdentity(): string;
-  buildSingleObjectUrl(objectId: string, options?: { theme?: string; opt?: string[]; identity?: string; }): string;
-  renderVisualization(args: { element: HTMLElement; objectId: string; theme?: string; language?: string }): Promise<() => void>;
+  buildSingleObjectUrl(
+    objectId: string,
+    options?: { theme?: string; opt?: string[]; identity?: string }
+  ): string;
+  renderVisualisation(args: {
+    element: HTMLElement;
+    objectId: string;
+    theme?: string;
+    language?: string;
+  }): Promise<() => void>;
   on(event: EventName, handler: Listener): void;
   off(event: EventName, handler: Listener): void;
 }
@@ -73,23 +81,28 @@ class QlikService implements QlikServiceContract {
           },
           {
             name: "linechart",
-            load: () => import("@nebula.js/sn-line-chart").then((m) => m.default ?? m),
+            load: () =>
+              import("@nebula.js/sn-line-chart").then((m) => m.default ?? m),
           },
           {
             name: "barchart",
-            load: () => import("@nebula.js/sn-bar-chart").then((m) => m.default ?? m),
+            load: () =>
+              import("@nebula.js/sn-bar-chart").then((m) => m.default ?? m),
           },
           {
             name: "piechart",
-            load: () => import("@nebula.js/sn-pie-chart").then((m) => m.default ?? m),
+            load: () =>
+              import("@nebula.js/sn-pie-chart").then((m) => m.default ?? m),
           },
           {
             name: "scatterplot",
-            load: () => import("@nebula.js/sn-scatter-plot").then((m) => m.default ?? m),
+            load: () =>
+              import("@nebula.js/sn-scatter-plot").then((m) => m.default ?? m),
           },
           {
             name: "treemap",
-            load: () => import("@nebula.js/sn-treemap").then((m) => m.default ?? m),
+            load: () =>
+              import("@nebula.js/sn-treemap").then((m) => m.default ?? m),
           },
           {
             name: "map",
@@ -97,11 +110,13 @@ class QlikService implements QlikServiceContract {
           },
           {
             name: "table",
-            load: () => import("@nebula.js/sn-table").then((m) => m.default ?? m),
+            load: () =>
+              import("@nebula.js/sn-table").then((m) => m.default ?? m),
           },
           {
             name: "pivot-table",
-            load: () => import("@nebula.js/sn-pivot-table").then((m) => m.default ?? m),
+            load: () =>
+              import("@nebula.js/sn-pivot-table").then((m) => m.default ?? m),
           },
         ],
         context: {
@@ -227,7 +242,7 @@ class QlikService implements QlikServiceContract {
     } = {}
   ): string {
     if (!this.config) {
-      throw new Error('Not connected to Qlik Sense app');
+      throw new Error("Not connected to Qlik Sense app");
     }
 
     const baseUrl = this.getBaseUrl();
@@ -236,25 +251,25 @@ class QlikService implements QlikServiceContract {
       obj: objectId,
     });
 
-    const theme = options.theme ?? 'horizon';
+    const theme = options.theme ?? "horizon";
     if (theme) {
-      params.set('theme', theme);
+      params.set("theme", theme);
     }
 
-    const opt = options.opt ?? ['ctxmenu', 'currsel'];
+    const opt = options.opt ?? ["ctxmenu", "currsel"];
     if (opt.length) {
-      params.set('opt', opt.join(','));
+      params.set("opt", opt.join(","));
     }
 
     const identity = options.identity ?? this.identity;
     if (identity) {
-      params.set('identity', identity);
+      params.set("identity", identity);
     }
 
     return `${baseUrl}/single/?${params.toString()}`;
   }
 
-  async renderVisualization({
+  async renderVisualisation({
     element,
     objectId,
     theme = "horizon",
@@ -293,7 +308,7 @@ class QlikService implements QlikServiceContract {
       try {
         viz?.destroy?.();
       } catch (error) {
-        console.warn(`Failed to tear down visualization ${objectId}:`, error);
+        console.warn(`Failed to tear down visualisation ${objectId}:`, error);
       }
     };
   }
@@ -388,11 +403,19 @@ class MockQlikService implements QlikServiceContract {
     return `mock://object/${objectId}`;
   }
 
-  async renderVisualization({ element, objectId }: { element: HTMLElement; objectId: string; theme?: string; language?: string; }): Promise<() => void> {
+  async renderVisualisation({
+    element,
+    objectId,
+  }: {
+    element: HTMLElement;
+    objectId: string;
+    theme?: string;
+    language?: string;
+  }): Promise<() => void> {
     const viz = document.createElement("div");
     viz.dataset.testid = `mock-viz-${objectId}`;
     viz.className = "mock-qlik-viz";
-    viz.textContent = `Visualization ${objectId}`;
+    viz.textContent = `Visualisation ${objectId}`;
     element.appendChild(viz);
     return () => {
       if (element.contains(viz)) {

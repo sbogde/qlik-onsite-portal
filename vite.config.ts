@@ -23,7 +23,7 @@ export default defineConfig(({ mode }) => ({
         name: "Qlik Sense Analytics Mashup",
         short_name: "Qlik Analytics",
         description:
-          "Professional analytics dashboard connecting to Qlik Sense on-premises server with interactive visualizations and reports",
+          "Professional analytics dashboard connecting to Qlik Sense on-premises server with interactive visualisations and reports",
         theme_color: "#1f2937",
         background_color: "#ffffff",
         display: "standalone",

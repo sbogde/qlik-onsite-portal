@@ -1,9 +1,9 @@
-import React, { useEffect, useRef, useState } from 'react';
-import { Card } from '@/components/ui/card';
-import { Skeleton } from '@/components/ui/skeleton';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { AlertCircle } from 'lucide-react';
-import { qlikService } from '@/lib/qlik';
+import React, { useEffect, useRef, useState } from "react";
+import { Card } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { AlertCircle } from "lucide-react";
+import { qlikService } from "@/lib/qlik";
 
 interface QlikObjectContainerProps {
   objectId: string;
@@ -16,7 +16,7 @@ export const QlikObjectContainer: React.FC<QlikObjectContainerProps> = ({
   objectId,
   title,
   height = "400px",
-  className = ""
+  className = "",
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const [loading, setLoading] = useState(true);
@@ -27,7 +27,7 @@ export const QlikObjectContainer: React.FC<QlikObjectContainerProps> = ({
   useEffect(() => {
     let isActive = true;
 
-    const renderVisualization = async () => {
+    const renderVisualisation = async () => {
       if (!isActive) {
         return;
       }
@@ -54,12 +54,12 @@ export const QlikObjectContainer: React.FC<QlikObjectContainerProps> = ({
           mountNodeRef.current = null;
         }
 
-        const mountElement = document.createElement('div');
-        mountElement.className = 'w-full h-full';
+        const mountElement = document.createElement("div");
+        mountElement.className = "w-full h-full";
         containerRef.current.appendChild(mountElement);
         mountNodeRef.current = mountElement;
 
-        const tearDown = await qlikService.renderVisualization({
+        const tearDown = await qlikService.renderVisualisation({
           element: mountElement,
           objectId,
         });
@@ -72,21 +72,31 @@ export const QlikObjectContainer: React.FC<QlikObjectContainerProps> = ({
         teardownRef.current = tearDown;
         setLoading(false);
       } catch (err) {
-        if (mountNodeRef.current && containerRef.current?.contains(mountNodeRef.current)) {
+        if (
+          mountNodeRef.current &&
+          containerRef.current?.contains(mountNodeRef.current)
+        ) {
           try {
             containerRef.current.removeChild(mountNodeRef.current);
           } catch (removeError) {
-            console.warn('Failed to clean nebula mount node after error:', removeError);
+            console.warn(
+              "Failed to clean nebula mount node after error:",
+              removeError
+            );
           }
           mountNodeRef.current = null;
         }
-        setError(err instanceof Error ? err.message : 'Unable to render Qlik visualization');
+        setError(
+          err instanceof Error
+            ? err.message
+            : "Unable to render Qlik visualisation"
+        );
         setLoading(false);
       }
     };
 
     const handleConnected = () => {
-      void renderVisualization();
+      void renderVisualisation();
     };
 
     const handleDisconnected = () => {
@@ -102,7 +112,7 @@ export const QlikObjectContainer: React.FC<QlikObjectContainerProps> = ({
           try {
             containerRef.current.removeChild(mountNodeRef.current);
           } catch (error) {
-            console.warn('Failed to remove nebula mount node:', error);
+            console.warn("Failed to remove nebula mount node:", error);
           }
           mountNodeRef.current = null;
         }
@@ -110,16 +120,16 @@ export const QlikObjectContainer: React.FC<QlikObjectContainerProps> = ({
       setLoading(true);
     };
 
-    qlikService.on('connected', handleConnected);
-    qlikService.on('disconnected', handleDisconnected);
+    qlikService.on("connected", handleConnected);
+    qlikService.on("disconnected", handleDisconnected);
 
     // Attempt immediately in case we're already connected.
-    void renderVisualization();
+    void renderVisualisation();
 
     return () => {
       isActive = false;
-      qlikService.off('connected', handleConnected);
-      qlikService.off('disconnected', handleDisconnected);
+      qlikService.off("connected", handleConnected);
+      qlikService.off("disconnected", handleDisconnected);
       if (teardownRef.current) {
         teardownRef.current();
         teardownRef.current = null;
@@ -128,7 +138,10 @@ export const QlikObjectContainer: React.FC<QlikObjectContainerProps> = ({
         try {
           containerRef.current.removeChild(mountNodeRef.current);
         } catch (error) {
-          console.warn('Failed to remove nebula mount node during cleanup:', error);
+          console.warn(
+            "Failed to remove nebula mount node during cleanup:",
+            error
+          );
         }
         mountNodeRef.current = null;
       }
@@ -136,8 +149,14 @@ export const QlikObjectContainer: React.FC<QlikObjectContainerProps> = ({
   }, [objectId]);
 
   return (
-    <Card className={`p-6 shadow-card transition-smooth hover:shadow-analytics ${className}`}>
-      {title && <h3 className="text-lg font-semibold mb-4 text-analytics-slate">{title}</h3>}
+    <Card
+      className={`p-6 shadow-card transition-smooth hover:shadow-analytics ${className}`}
+    >
+      {title && (
+        <h3 className="text-lg font-semibold mb-4 text-analytics-slate">
+          {title}
+        </h3>
+      )}
 
       {error && (
         <Alert variant="destructive" className="mb-4">
@@ -148,7 +167,7 @@ export const QlikObjectContainer: React.FC<QlikObjectContainerProps> = ({
 
       <div
         ref={containerRef}
-        style={{ height, position: 'relative' }}
+        style={{ height, position: "relative" }}
         className="bg-gradient-subtle rounded-lg border border-border overflow-hidden"
       >
         {loading && (

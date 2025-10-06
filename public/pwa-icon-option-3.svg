@@ -11,7 +11,7 @@
     <!-- Q tail -->
     <path d="M70 70 L120 120" stroke="white" stroke-width="16" stroke-linecap="round"/>
     
-    <!-- Data visualization elements inside Q -->
+    <!-- Data visualisation elements inside Q -->
     <g transform="translate(-60, -40)">
       <!-- Small bar chart -->
       <rect x="0" y="40" width="8" height="20" rx="2" fill="#FFE500"/>
