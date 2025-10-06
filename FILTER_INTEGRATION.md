@@ -9,7 +9,7 @@ The navigation component now includes fully integrated filters that communicate 
 ### 🎯 **Integrated Filter Fields**
 
 1. **🗺️ Region Name** - Geographic filtering
-2. **🏢 Channel** - Sales channel filtering  
+2. **🏢 Channel** - Sales channel filtering
 3. **📦 Product Sub Group Desc** - Product category filtering
 4. **📅 Year** - Time-based filtering
 
@@ -26,6 +26,8 @@ The navigation component now includes fully integrated filters that communicate 
 - **Connection Awareness**: Filters disabled when not connected to Qlik
 - **State Persistence**: Maintains filter state across navigation
 - **Visual Feedback**: Active filters highlighted with count badges
+- **Minimize/Maximize**: Collapsible filter panel to save space
+- **Smart Layout**: Minimized view shows only essentials (icon, title, count, clear all)
 
 ## Technical Implementation
 
@@ -58,6 +60,7 @@ const selections = await qlikService.getCurrentSelections();
 ### Mock Mode Support
 
 In development with `VITE_QA_MOCK=true`:
+
 - Filter interactions are logged to console
 - Mock selections returned for testing
 - All UI behaviors work without Qlik connection
@@ -65,9 +68,10 @@ In development with `VITE_QA_MOCK=true`:
 ## Usage
 
 1. **Connect to Qlik Sense** using the connection configuration
-2. **Expand filter sections** by clicking on field names
-3. **Select values** to apply filters to all visualizations
-4. **Clear filters** using individual X buttons or "Clear All"
+2. **Minimize/Maximize filters** using the chevron icon in the top-right corner
+3. **Expand filter sections** by clicking on field names
+4. **Select values** to apply filters to all visualizations
+5. **Clear filters** using individual X buttons or "Clear All"
 
 The filters automatically sync with the Qlik Sense engine and update all visualizations in real-time!
 

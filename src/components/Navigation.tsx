@@ -16,6 +16,8 @@ import {
   Package,
   Calendar,
   Building,
+  ChevronUp,
+  ChevronDown,
 } from "lucide-react";
 import { qlikService } from "@/lib/qlik";
 
@@ -89,6 +91,7 @@ export const Navigation: React.FC = () => {
   }>({});
   const [expandedFilter, setExpandedFilter] = useState<string | null>(null);
   const [applyingFilter, setApplyingFilter] = useState<string | null>(null);
+  const [filtersExpanded, setFiltersExpanded] = useState(true);
 
   useEffect(() => {
     const handleConnected = () => setConnected(true);
@@ -151,11 +154,11 @@ export const Navigation: React.FC = () => {
 
         // Apply selection to Qlik Sense (async)
         if (newValues.length > 0) {
-          qlikService.selectValues(fieldId, newValues).catch(error => {
+          qlikService.selectValues(fieldId, newValues).catch((error) => {
             console.error("Failed to apply selection:", error);
           });
         } else {
-          qlikService.clearSelections([fieldId]).catch(error => {
+          qlikService.clearSelections([fieldId]).catch((error) => {
             console.error("Failed to clear field selection:", error);
           });
         }
@@ -275,7 +278,7 @@ export const Navigation: React.FC = () => {
       </div>
 
       {/* Filters Section */}
-      <div className="mt-6 p-4 bg-accent/20 rounded-lg border border-border/50">
+      <div className="mt-6 p-4 bg-accent/20 rounded-lg border border-border/50 relative">
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">
             <Filter className="h-4 w-4 text-analytics-blue" />
@@ -300,92 +303,112 @@ export const Navigation: React.FC = () => {
           )}
         </div>
 
-        <div className="space-y-3">
-          {filterFields.map((field) => {
-            const Icon = field.icon;
-            const isExpanded = expandedFilter === field.id;
-            const activeValues = activeFilters[field.id] || [];
-            const hasActiveFilters = activeValues.length > 0;
+        {filtersExpanded && (
+          <>
+            <div className="space-y-3">
+              {filterFields.map((field) => {
+                const Icon = field.icon;
+                const isExpanded = expandedFilter === field.id;
+                const activeValues = activeFilters[field.id] || [];
+                const hasActiveFilters = activeValues.length > 0;
 
-            return (
-              <div key={field.id} className="border-l-2 border-accent/50 pl-3">
-                <Button
-                  variant="ghost"
-                  onClick={() =>
-                    setExpandedFilter(isExpanded ? null : field.id)
-                  }
-                  className="w-full justify-between p-2 h-auto text-left hover:bg-accent/30"
-                >
-                  <div className="flex items-center gap-2">
-                    <Icon className="h-3.5 w-3.5 text-muted-foreground" />
-                    <span className="text-xs font-medium">{field.label}</span>
-                    {hasActiveFilters && (
-                      <Badge
-                        variant="outline"
-                        className="text-[10px] px-1.5 py-0"
-                      >
-                        {activeValues.length}
-                      </Badge>
+                return (
+                  <div key={field.id} className="border-l-2 border-accent/50 pl-3">
+                    <Button
+                      variant="ghost"
+                      onClick={() =>
+                        setExpandedFilter(isExpanded ? null : field.id)
+                      }
+                      className="w-full justify-between p-2 h-auto text-left hover:bg-accent/30"
+                    >
+                      <div className="flex items-center gap-2">
+                        <Icon className="h-3.5 w-3.5 text-muted-foreground" />
+                        <span className="text-xs font-medium">{field.label}</span>
+                        {hasActiveFilters && (
+                          <Badge
+                            variant="outline"
+                            className="text-[10px] px-1.5 py-0"
+                          >
+                            {activeValues.length}
+                          </Badge>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-1">
+                        {hasActiveFilters && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              clearFieldFilters(field.id);
+                            }}
+                            className="h-4 w-4 p-0 hover:bg-destructive/20"
+                          >
+                            <X className="h-3 w-3 text-muted-foreground hover:text-destructive" />
+                          </Button>
+                        )}
+                      </div>
+                    </Button>
+
+                    {isExpanded && (
+                      <div className="mt-2 pl-2 space-y-1">
+                        {field.values.map((value) => {
+                          const isActive = activeValues.includes(value);
+                          const isApplying =
+                            applyingFilter === `${field.id}-${value}`;
+                          return (
+                            <Button
+                              key={value}
+                              variant={isActive ? "secondary" : "ghost"}
+                              size="sm"
+                              onClick={() => toggleFilter(field.id, value)}
+                              disabled={isApplying || !connected}
+                              className={`w-full justify-start text-[11px] h-7 px-2 ${
+                                isActive
+                                  ? "bg-analytics-blue/10 text-analytics-blue border border-analytics-blue/20"
+                                  : "hover:bg-accent/40"
+                              } ${isApplying ? "opacity-50" : ""}`}
+                            >
+                              {isApplying ? (
+                                <div className="flex items-center gap-2">
+                                  <div className="w-3 h-3 border border-analytics-blue border-t-transparent rounded-full animate-spin" />
+                                  {value}
+                                </div>
+                              ) : (
+                                value
+                              )}
+                            </Button>
+                          );
+                        })}
+                      </div>
                     )}
                   </div>
-                  <div className="flex items-center gap-1">
-                    {hasActiveFilters && (
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          clearFieldFilters(field.id);
-                        }}
-                        className="h-4 w-4 p-0 hover:bg-destructive/20"
-                      >
-                        <X className="h-3 w-3 text-muted-foreground hover:text-destructive" />
-                      </Button>
-                    )}
-                  </div>
-                </Button>
+                );
+              })}
+            </div>
 
-                {isExpanded && (
-                  <div className="mt-2 pl-2 space-y-1">
-                    {field.values.map((value) => {
-                      const isActive = activeValues.includes(value);
-                      const isApplying = applyingFilter === `${field.id}-${value}`;
-                      return (
-                        <Button
-                          key={value}
-                          variant={isActive ? "secondary" : "ghost"}
-                          size="sm"
-                          onClick={() => toggleFilter(field.id, value)}
-                          disabled={isApplying || !connected}
-                          className={`w-full justify-start text-[11px] h-7 px-2 ${
-                            isActive
-                              ? "bg-analytics-blue/10 text-analytics-blue border border-analytics-blue/20"
-                              : "hover:bg-accent/40"
-                          } ${isApplying ? "opacity-50" : ""}`}
-                        >
-                          {isApplying ? (
-                            <div className="flex items-center gap-2">
-                              <div className="w-3 h-3 border border-analytics-blue border-t-transparent rounded-full animate-spin" />
-                              {value}
-                            </div>
-                          ) : (
-                            value
-                          )}
-                        </Button>
-                      );
-                    })}
-                  </div>
-                )}
+            {!connected && (
+              <div className="mt-3 p-2 bg-amber-50 border border-amber-200 rounded text-[10px] text-amber-700">
+                Connect to Qlik Sense to apply filters
               </div>
-            );
-          })}
-        </div>
-
-        {!connected && (
-          <div className="mt-3 p-2 bg-amber-50 border border-amber-200 rounded text-[10px] text-amber-700">
-            Connect to Qlik Sense to apply filters
-          </div>
+            )}
+          </>
         )}
+
+        {/* Minimize/Maximize toggle - positioned at bottom right */}
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => setFiltersExpanded(!filtersExpanded)}
+          className="absolute bottom-2 right-2 h-6 w-6 p-0 text-muted-foreground hover:text-analytics-blue"
+          title={filtersExpanded ? "Minimize filters" : "Expand filters"}
+        >
+          {filtersExpanded ? (
+            <ChevronUp className="h-4 w-4" />
+          ) : (
+            <ChevronDown className="h-4 w-4" />
+          )}
+        </Button>
       </div>
     </Card>
   );

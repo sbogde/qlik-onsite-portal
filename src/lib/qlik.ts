@@ -43,7 +43,7 @@ export interface QlikServiceContract {
   selectValues(fieldName: string, values: string[]): Promise<boolean>;
   clearSelections(fieldNames?: string[]): Promise<boolean>;
   getFieldValues(fieldName: string): Promise<string[]>;
-  getCurrentSelections(): Promise<{[fieldName: string]: string[]}>;
+  getCurrentSelections(): Promise<{ [fieldName: string]: string[] }>;
   on(event: EventName, handler: Listener): void;
   off(event: EventName, handler: Listener): void;
 }
@@ -325,7 +325,11 @@ class QlikService implements QlikServiceContract {
 
     try {
       const field = await this.app.getField(fieldName);
-      await field.selectValues(values.map(value => ({ qText: value })), true, true);
+      await field.selectValues(
+        values.map((value) => ({ qText: value })),
+        true,
+        true
+      );
       return true;
     } catch (error) {
       console.error(`Failed to select values in field ${fieldName}:`, error);
@@ -371,23 +375,23 @@ class QlikService implements QlikServiceContract {
     }
   }
 
-  async getCurrentSelections(): Promise<{[fieldName: string]: string[]}> {
+  async getCurrentSelections(): Promise<{ [fieldName: string]: string[] }> {
     if (!this.app) {
       throw new Error("Not connected to Qlik Sense app");
     }
 
     try {
       const layout = await this.app.getAppLayout();
-      const selections: {[fieldName: string]: string[]} = {};
-      
+      const selections: { [fieldName: string]: string[] } = {};
+
       if (layout.qSelectionInfo && layout.qSelectionInfo.qInSelections) {
         for (const selection of layout.qSelectionInfo.qInSelections) {
           if (selection.qField && selection.qSelected) {
-            selections[selection.qField] = selection.qSelected.split(', ');
+            selections[selection.qField] = selection.qSelected.split(", ");
           }
         }
       }
-      
+
       return selections;
     } catch (error) {
       console.error("Failed to get current selections:", error);
@@ -519,17 +523,36 @@ class MockQlikService implements QlikServiceContract {
   async getFieldValues(fieldName: string): Promise<string[]> {
     console.log(`Mock: Getting field values for ${fieldName}`);
     // Return mock values based on field name
-    const mockValues: {[key: string]: string[]} = {
+    const mockValues: { [key: string]: string[] } = {
       "Region Name": ["Northeast", "Southeast", "Central", "West", "Southwest"],
-      "Channel": ["Direct", "Distribution", "Government", "Hospital", "Internet", "Retail"],
-      "Product Sub Group Desc": ["Fresh Vegetables", "Canned Fruit", "Cereal", "Candy", "Dairy"],
-      "Sales Rep": ["Amalia Craig", "Amanda Ho", "Amelia Fields", "Angolan Carter", "Brenda Gibson"],
-      "Year": ["2019", "2020", "2021", "2022", "2023"],
+      Channel: [
+        "Direct",
+        "Distribution",
+        "Government",
+        "Hospital",
+        "Internet",
+        "Retail",
+      ],
+      "Product Sub Group Desc": [
+        "Fresh Vegetables",
+        "Canned Fruit",
+        "Cereal",
+        "Candy",
+        "Dairy",
+      ],
+      "Sales Rep": [
+        "Amalia Craig",
+        "Amanda Ho",
+        "Amelia Fields",
+        "Angolan Carter",
+        "Brenda Gibson",
+      ],
+      Year: ["2019", "2020", "2021", "2022", "2023"],
     };
     return mockValues[fieldName] || [];
   }
 
-  async getCurrentSelections(): Promise<{[fieldName: string]: string[]}> {
+  async getCurrentSelections(): Promise<{ [fieldName: string]: string[] }> {
     console.log("Mock: Getting current selections");
     return {};
   }
