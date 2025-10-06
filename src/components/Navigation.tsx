@@ -93,7 +93,7 @@ export const Navigation: React.FC = () => {
   const [expandedFilter, setExpandedFilter] = useState<string | null>(null);
   const [applyingFilter, setApplyingFilter] = useState<string | null>(null);
   const [filtersExpanded, setFiltersExpanded] = useState(true);
-  const [bookmarksExpanded, setBookmarksExpanded] = useState(true);
+  const [bookmarksExpanded, setBookmarksExpanded] = useState(false);
   const [bookmarks, setBookmarks] = useState<
     Array<{ id: string; title: string; description?: string }>
   >([]);
