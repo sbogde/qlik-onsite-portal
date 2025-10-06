@@ -412,12 +412,36 @@ class QlikService implements QlikServiceContract {
       const bookmarkList = await this.app.getBookmarkList();
       const layout = await bookmarkList.getLayout();
 
-      return layout.qBookmarkList.qItems.map((item: any) => ({
+      const realBookmarks = layout.qBookmarkList.qItems.map((item: any) => ({
         id: item.qInfo.qId,
         title:
           item.qData.title || item.qMeta.title || `Bookmark ${item.qInfo.qId}`,
         description: item.qData.description || item.qMeta.description,
       }));
+
+      // If no real bookmarks exist, provide some sample ones for demo purposes
+      if (realBookmarks.length === 0) {
+        console.info("No bookmarks found in Qlik app, showing demo bookmarks");
+        return [
+          {
+            id: "demo-bookmark-1",
+            title: "Demo: All Data",
+            description: "View all data without filters (demo bookmark)",
+          },
+          {
+            id: "demo-bookmark-2", 
+            title: "Demo: Current Year",
+            description: "Filter to current year data (demo bookmark)",
+          },
+          {
+            id: "demo-bookmark-3",
+            title: "Demo: Top Regions",
+            description: "Focus on top performing regions (demo bookmark)",
+          },
+        ];
+      }
+
+      return realBookmarks;
     } catch (error) {
       console.error("Failed to get bookmarks:", error);
       return [];
@@ -429,6 +453,39 @@ class QlikService implements QlikServiceContract {
       throw new Error("Not connected to Qlik Sense app");
     }
 
+    // Handle demo bookmarks
+    if (bookmarkId.startsWith("demo-bookmark-")) {
+      console.info(`Applying demo bookmark: ${bookmarkId}`);
+      try {
+        switch (bookmarkId) {
+          case "demo-bookmark-1":
+            // Clear all selections for "All Data"
+            await this.app.clearAll();
+            break;
+          case "demo-bookmark-2":
+            // Select current year (2023)
+            await this.app.clearAll();
+            const yearField = await this.app.getField("Year");
+            await yearField.selectValues([{ qText: "2023" }]);
+            break;
+          case "demo-bookmark-3":
+            // Select top regions
+            await this.app.clearAll();
+            const regionField = await this.app.getField("Region Name");
+            await regionField.selectValues([
+              { qText: "Northeast" },
+              { qText: "West" }
+            ]);
+            break;
+        }
+        return true;
+      } catch (error) {
+        console.error(`Failed to apply demo bookmark ${bookmarkId}:`, error);
+        return false;
+      }
+    }
+
+    // Handle real bookmarks
     try {
       const bookmark = await this.app.getBookmark(bookmarkId);
       await bookmark.apply();
