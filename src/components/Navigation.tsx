@@ -313,7 +313,10 @@ export const Navigation: React.FC = () => {
                 const hasActiveFilters = activeValues.length > 0;
 
                 return (
-                  <div key={field.id} className="border-l-2 border-accent/50 pl-3">
+                  <div
+                    key={field.id}
+                    className="border-l-2 border-accent/50 pl-3"
+                  >
                     <Button
                       variant="ghost"
                       onClick={() =>
@@ -323,7 +326,9 @@ export const Navigation: React.FC = () => {
                     >
                       <div className="flex items-center gap-2">
                         <Icon className="h-3.5 w-3.5 text-muted-foreground" />
-                        <span className="text-xs font-medium">{field.label}</span>
+                        <span className="text-xs font-medium">
+                          {field.label}
+                        </span>
                         {hasActiveFilters && (
                           <Badge
                             variant="outline"
