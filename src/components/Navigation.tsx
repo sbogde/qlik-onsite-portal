@@ -2,12 +2,20 @@ import React, { useEffect, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import {
   BarChart3,
   LineChart,
   FileText,
   Activity,
   Database,
+  Filter,
+  X,
+  MapPin,
+  Users,
+  Package,
+  Calendar,
+  Building,
 } from "lucide-react";
 import { qlikService } from "@/lib/qlik";
 
@@ -32,9 +40,54 @@ const navItems = [
   },
 ];
 
+// Key filter fields from the Consumer Sales demo app
+const filterFields = [
+  {
+    id: "Region Name",
+    label: "Region",
+    icon: MapPin,
+    values: ["Northeast", "Southeast", "Central", "West", "Southwest"],
+  },
+  {
+    id: "Channel",
+    label: "Sales Channel",
+    icon: Building,
+    values: [
+      "Direct",
+      "Distribution",
+      "Government",
+      "Hospital",
+      "Internet",
+      "Retail",
+    ],
+  },
+  {
+    id: "Product Sub Group Desc",
+    label: "Product Group",
+    icon: Package,
+    values: ["Fresh Vegetables", "Canned Fruit", "Cereal", "Candy", "Dairy"],
+  },
+  // {
+  //   id: "Sales Rep",
+  //   label: "Sales Rep",
+  //   icon: Users,
+  //   values: ["Amalia Craig", "Amanda Ho", "Amelia Fields", "Angolan Carter", "Brenda Gibson"],
+  // },
+  {
+    id: "Year",
+    label: "Year",
+    icon: Calendar,
+    values: ["2019", "2020", "2021", "2022", "2023"],
+  },
+];
+
 export const Navigation: React.FC = () => {
   const location = useLocation();
   const [connected, setConnected] = useState(qlikService.isConnected());
+  const [activeFilters, setActiveFilters] = useState<{
+    [key: string]: string[];
+  }>({});
+  const [expandedFilter, setExpandedFilter] = useState<string | null>(null);
 
   useEffect(() => {
     const handleConnected = () => setConnected(true);
@@ -53,6 +106,42 @@ export const Navigation: React.FC = () => {
   const statusText = connected
     ? "Connected to Qlik Sense"
     : "Disconnected from Qlik Sense";
+
+  const toggleFilter = (fieldId: string, value: string) => {
+    setActiveFilters((prev) => {
+      const current = prev[fieldId] || [];
+      const isActive = current.includes(value);
+
+      if (isActive) {
+        // Remove filter
+        const updated = current.filter((v) => v !== value);
+        if (updated.length === 0) {
+          const { [fieldId]: removed, ...rest } = prev;
+          return rest;
+        }
+        return { ...prev, [fieldId]: updated };
+      } else {
+        // Add filter
+        return { ...prev, [fieldId]: [...current, value] };
+      }
+    });
+  };
+
+  const clearFieldFilters = (fieldId: string) => {
+    setActiveFilters((prev) => {
+      const { [fieldId]: removed, ...rest } = prev;
+      return rest;
+    });
+  };
+
+  const clearAllFilters = () => {
+    setActiveFilters({});
+  };
+
+  const totalActiveFilters = Object.values(activeFilters).reduce(
+    (sum, values) => sum + values.length,
+    0
+  );
 
   return (
     <Card className="p-6 shadow-card bg-gradient-subtle">
@@ -122,6 +211,111 @@ export const Navigation: React.FC = () => {
             sense-demo.qlik.com
           </a>
         </p>
+      </div>
+
+      {/* Filters Section */}
+      <div className="mt-6 p-4 bg-accent/20 rounded-lg border border-border/50">
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center gap-2">
+            <Filter className="h-4 w-4 text-analytics-blue" />
+            <span className="text-sm font-medium text-analytics-slate">
+              Filters
+            </span>
+            {totalActiveFilters > 0 && (
+              <Badge variant="secondary" className="text-xs px-2 py-0.5">
+                {totalActiveFilters}
+              </Badge>
+            )}
+          </div>
+          {totalActiveFilters > 0 && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={clearAllFilters}
+              className="h-6 px-2 text-xs text-muted-foreground hover:text-destructive"
+            >
+              Clear All
+            </Button>
+          )}
+        </div>
+
+        <div className="space-y-3">
+          {filterFields.map((field) => {
+            const Icon = field.icon;
+            const isExpanded = expandedFilter === field.id;
+            const activeValues = activeFilters[field.id] || [];
+            const hasActiveFilters = activeValues.length > 0;
+
+            return (
+              <div key={field.id} className="border-l-2 border-accent/50 pl-3">
+                <Button
+                  variant="ghost"
+                  onClick={() =>
+                    setExpandedFilter(isExpanded ? null : field.id)
+                  }
+                  className="w-full justify-between p-2 h-auto text-left hover:bg-accent/30"
+                >
+                  <div className="flex items-center gap-2">
+                    <Icon className="h-3.5 w-3.5 text-muted-foreground" />
+                    <span className="text-xs font-medium">{field.label}</span>
+                    {hasActiveFilters && (
+                      <Badge
+                        variant="outline"
+                        className="text-[10px] px-1.5 py-0"
+                      >
+                        {activeValues.length}
+                      </Badge>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-1">
+                    {hasActiveFilters && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          clearFieldFilters(field.id);
+                        }}
+                        className="h-4 w-4 p-0 hover:bg-destructive/20"
+                      >
+                        <X className="h-3 w-3 text-muted-foreground hover:text-destructive" />
+                      </Button>
+                    )}
+                  </div>
+                </Button>
+
+                {isExpanded && (
+                  <div className="mt-2 pl-2 space-y-1">
+                    {field.values.map((value) => {
+                      const isActive = activeValues.includes(value);
+                      return (
+                        <Button
+                          key={value}
+                          variant={isActive ? "secondary" : "ghost"}
+                          size="sm"
+                          onClick={() => toggleFilter(field.id, value)}
+                          className={`w-full justify-start text-[11px] h-7 px-2 ${
+                            isActive
+                              ? "bg-analytics-blue/10 text-analytics-blue border border-analytics-blue/20"
+                              : "hover:bg-accent/40"
+                          }`}
+                        >
+                          {value}
+                        </Button>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+
+        {!connected && (
+          <div className="mt-3 p-2 bg-amber-50 border border-amber-200 rounded text-[10px] text-amber-700">
+            Connect to Qlik Sense to apply filters
+          </div>
+        )}
       </div>
     </Card>
   );
