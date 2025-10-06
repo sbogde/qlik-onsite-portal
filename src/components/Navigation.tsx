@@ -18,6 +18,7 @@ import {
   Building,
   ChevronUp,
   ChevronDown,
+  Bookmark,
 } from "lucide-react";
 import { qlikService } from "@/lib/qlik";
 
@@ -92,6 +93,9 @@ export const Navigation: React.FC = () => {
   const [expandedFilter, setExpandedFilter] = useState<string | null>(null);
   const [applyingFilter, setApplyingFilter] = useState<string | null>(null);
   const [filtersExpanded, setFiltersExpanded] = useState(true);
+  const [bookmarksExpanded, setBookmarksExpanded] = useState(true);
+  const [bookmarks, setBookmarks] = useState<Array<{id: string; title: string; description?: string}>>([]);
+  const [applyingBookmark, setApplyingBookmark] = useState<string | null>(null);
 
   useEffect(() => {
     const handleConnected = () => setConnected(true);
@@ -118,10 +122,21 @@ export const Navigation: React.FC = () => {
         }
       };
 
+      const loadBookmarks = async () => {
+        try {
+          const bookmarksList = await qlikService.getBookmarks();
+          setBookmarks(bookmarksList);
+        } catch (error) {
+          console.error("Failed to load bookmarks:", error);
+        }
+      };
+
       syncSelections();
+      loadBookmarks();
     } else {
-      // Clear local filters when disconnected
+      // Clear local filters and bookmarks when disconnected
       setActiveFilters({});
+      setBookmarks([]);
     }
   }, [connected]);
 
@@ -206,6 +221,34 @@ export const Navigation: React.FC = () => {
     (sum, values) => sum + values.length,
     0
   );
+
+  const applyBookmark = async (bookmarkId: string) => {
+    if (!connected) {
+      console.warn("Cannot apply bookmark: not connected to Qlik Sense");
+      return;
+    }
+
+    setApplyingBookmark(bookmarkId);
+
+    try {
+      const success = await qlikService.applyBookmark(bookmarkId);
+      if (success) {
+        // Refresh current selections after applying bookmark
+        setTimeout(async () => {
+          try {
+            const currentSelections = await qlikService.getCurrentSelections();
+            setActiveFilters(currentSelections);
+          } catch (error) {
+            console.error("Failed to sync selections after bookmark:", error);
+          }
+        }, 500);
+      }
+    } catch (error) {
+      console.error("Failed to apply bookmark:", error);
+    } finally {
+      setTimeout(() => setApplyingBookmark(null), 300);
+    }
+  };
 
   return (
     <Card className="p-6 shadow-card bg-gradient-subtle">
@@ -409,6 +452,89 @@ export const Navigation: React.FC = () => {
           title={filtersExpanded ? "Minimize filters" : "Expand filters"}
         >
           {filtersExpanded ? (
+            <ChevronUp className="h-4 w-4" />
+          ) : (
+            <ChevronDown className="h-4 w-4" />
+          )}
+        </Button>
+      </div>
+
+      {/* Bookmarks Section */}
+      <div className="mt-6 p-4 bg-accent/15 rounded-lg border border-border/50 relative">
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center gap-2">
+            <Bookmark className="h-4 w-4 text-analytics-blue" />
+            <span className="text-sm font-medium text-analytics-slate">
+              Bookmarks
+            </span>
+            {bookmarks.length > 0 && (
+              <Badge variant="outline" className="text-xs px-2 py-0.5">
+                {bookmarks.length}
+              </Badge>
+            )}
+          </div>
+        </div>
+
+        {bookmarksExpanded && (
+          <>
+            <div className="space-y-2">
+              {bookmarks.map((bookmark) => {
+                const isApplying = applyingBookmark === bookmark.id;
+                return (
+                  <Button
+                    key={bookmark.id}
+                    variant="ghost"
+                    onClick={() => applyBookmark(bookmark.id)}
+                    disabled={isApplying || !connected}
+                    className={`w-full justify-start text-left h-auto p-3 hover:bg-accent/40 ${
+                      isApplying ? "opacity-50" : ""
+                    }`}
+                  >
+                    <div className="flex items-center gap-3 w-full">
+                      {isApplying ? (
+                        <div className="w-4 h-4 border-2 border-analytics-blue border-t-transparent rounded-full animate-spin flex-shrink-0" />
+                      ) : (
+                        <Bookmark className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                      )}
+                      <div className="text-left min-w-0 flex-1">
+                        <div className="text-sm font-medium text-analytics-slate truncate">
+                          {bookmark.title}
+                        </div>
+                        {bookmark.description && (
+                          <div className="text-xs text-muted-foreground mt-1 line-clamp-2">
+                            {bookmark.description}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </Button>
+                );
+              })}
+            </div>
+
+            {bookmarks.length === 0 && connected && (
+              <div className="text-center py-4 text-sm text-muted-foreground">
+                No bookmarks available
+              </div>
+            )}
+
+            {!connected && (
+              <div className="mt-3 p-2 bg-amber-50 border border-amber-200 rounded text-[10px] text-amber-700">
+                Connect to Qlik Sense to access bookmarks
+              </div>
+            )}
+          </>
+        )}
+
+        {/* Minimize/Maximize toggle - positioned at bottom right */}
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => setBookmarksExpanded(!bookmarksExpanded)}
+          className="absolute bottom-2 right-2 h-6 w-6 p-0 text-muted-foreground hover:text-analytics-blue"
+          title={bookmarksExpanded ? "Minimize bookmarks" : "Expand bookmarks"}
+        >
+          {bookmarksExpanded ? (
             <ChevronUp className="h-4 w-4" />
           ) : (
             <ChevronDown className="h-4 w-4" />

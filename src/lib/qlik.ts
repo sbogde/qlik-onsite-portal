@@ -43,7 +43,10 @@ export interface QlikServiceContract {
   selectValues(fieldName: string, values: string[]): Promise<boolean>;
   clearSelections(fieldNames?: string[]): Promise<boolean>;
   getFieldValues(fieldName: string): Promise<string[]>;
-  getCurrentSelections(): Promise<{ [fieldName: string]: string[] }>;
+  getCurrentSelections(): Promise<{[fieldName: string]: string[]}>;
+  // Bookmark methods
+  getBookmarks(): Promise<Array<{id: string; title: string; description?: string}>>;
+  applyBookmark(bookmarkId: string): Promise<boolean>;
   on(event: EventName, handler: Listener): void;
   off(event: EventName, handler: Listener): void;
 }
@@ -195,7 +198,6 @@ class QlikService implements QlikServiceContract {
       this.app = null;
       if (this.nebula) {
         try {
-          // The nebula instance doesn't have a destroy method, just set it to null
           this.nebula = null;
         } catch (error) {
           console.warn("Failed to destroy nebula instance:", error);
@@ -325,11 +327,7 @@ class QlikService implements QlikServiceContract {
 
     try {
       const field = await this.app.getField(fieldName);
-      await field.selectValues(
-        values.map((value) => ({ qText: value })),
-        true,
-        true
-      );
+      await field.selectValues(values.map(value => ({ qText: value })), true, true);
       return true;
     } catch (error) {
       console.error(`Failed to select values in field ${fieldName}:`, error);
@@ -344,13 +342,11 @@ class QlikService implements QlikServiceContract {
 
     try {
       if (fieldNames && fieldNames.length > 0) {
-        // Clear specific fields
         for (const fieldName of fieldNames) {
           const field = await this.app.getField(fieldName);
           await field.clear();
         }
       } else {
-        // Clear all selections
         await this.app.clearAll();
       }
       return true;
@@ -375,27 +371,62 @@ class QlikService implements QlikServiceContract {
     }
   }
 
-  async getCurrentSelections(): Promise<{ [fieldName: string]: string[] }> {
+  async getCurrentSelections(): Promise<{[fieldName: string]: string[]}> {
     if (!this.app) {
       throw new Error("Not connected to Qlik Sense app");
     }
 
     try {
       const layout = await this.app.getAppLayout();
-      const selections: { [fieldName: string]: string[] } = {};
-
+      const selections: {[fieldName: string]: string[]} = {};
+      
       if (layout.qSelectionInfo && layout.qSelectionInfo.qInSelections) {
         for (const selection of layout.qSelectionInfo.qInSelections) {
           if (selection.qField && selection.qSelected) {
-            selections[selection.qField] = selection.qSelected.split(", ");
+            selections[selection.qField] = selection.qSelected.split(', ');
           }
         }
       }
-
+      
       return selections;
     } catch (error) {
       console.error("Failed to get current selections:", error);
       return {};
+    }
+  }
+
+  async getBookmarks(): Promise<Array<{id: string; title: string; description?: string}>> {
+    if (!this.app) {
+      throw new Error("Not connected to Qlik Sense app");
+    }
+
+    try {
+      const bookmarkList = await this.app.getBookmarkList();
+      const layout = await bookmarkList.getLayout();
+      
+      return layout.qBookmarkList.qItems.map((item: any) => ({
+        id: item.qInfo.qId,
+        title: item.qData.title || item.qMeta.title || `Bookmark ${item.qInfo.qId}`,
+        description: item.qData.description || item.qMeta.description
+      }));
+    } catch (error) {
+      console.error("Failed to get bookmarks:", error);
+      return [];
+    }
+  }
+
+  async applyBookmark(bookmarkId: string): Promise<boolean> {
+    if (!this.app) {
+      throw new Error("Not connected to Qlik Sense app");
+    }
+
+    try {
+      const bookmark = await this.app.getBookmark(bookmarkId);
+      await bookmark.apply();
+      return true;
+    } catch (error) {
+      console.error(`Failed to apply bookmark ${bookmarkId}:`, error);
+      return false;
     }
   }
 
@@ -522,39 +553,33 @@ class MockQlikService implements QlikServiceContract {
 
   async getFieldValues(fieldName: string): Promise<string[]> {
     console.log(`Mock: Getting field values for ${fieldName}`);
-    // Return mock values based on field name
-    const mockValues: { [key: string]: string[] } = {
+    const mockValues: {[key: string]: string[]} = {
       "Region Name": ["Northeast", "Southeast", "Central", "West", "Southwest"],
-      Channel: [
-        "Direct",
-        "Distribution",
-        "Government",
-        "Hospital",
-        "Internet",
-        "Retail",
-      ],
-      "Product Sub Group Desc": [
-        "Fresh Vegetables",
-        "Canned Fruit",
-        "Cereal",
-        "Candy",
-        "Dairy",
-      ],
-      "Sales Rep": [
-        "Amalia Craig",
-        "Amanda Ho",
-        "Amelia Fields",
-        "Angolan Carter",
-        "Brenda Gibson",
-      ],
-      Year: ["2019", "2020", "2021", "2022", "2023"],
+      "Channel": ["Direct", "Distribution", "Government", "Hospital", "Internet", "Retail"],
+      "Product Sub Group Desc": ["Fresh Vegetables", "Canned Fruit", "Cereal", "Candy", "Dairy"],
+      "Sales Rep": ["Amalia Craig", "Amanda Ho", "Amelia Fields", "Angolan Carter", "Brenda Gibson"],
+      "Year": ["2019", "2020", "2021", "2022", "2023"],
     };
     return mockValues[fieldName] || [];
   }
 
-  async getCurrentSelections(): Promise<{ [fieldName: string]: string[] }> {
+  async getCurrentSelections(): Promise<{[fieldName: string]: string[]}> {
     console.log("Mock: Getting current selections");
     return {};
+  }
+
+  async getBookmarks(): Promise<Array<{id: string; title: string; description?: string}>> {
+    console.log("Mock: Getting bookmarks");
+    return [
+      { id: "bookmark1", title: "Lowest Performers (3 Reps)", description: "Focus on underperforming sales reps" },
+      { id: "bookmark2", title: "Lower Performers (16 Reps)", description: "Mid-tier performance analysis" },
+      { id: "bookmark3", title: "High Performers", description: "Top performing sales representatives" }
+    ];
+  }
+
+  async applyBookmark(bookmarkId: string): Promise<boolean> {
+    console.log(`Mock: Applying bookmark ${bookmarkId}`);
+    return true;
   }
 
   on(event: EventName, handler: Listener): void {
