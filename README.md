@@ -1,15 +1,25 @@
 # Qlik Onsite Portal
 
-React + Vite mashup that brokers access to the Qlik Sense "Consumer Sales" demo app through a hardened reverse proxy. The UI renders live Qlik objects, exposes lightweight analytics pages, and runs entirely on top of a single proxy endpoint so it can be deployed on-prem or via Cloudflare tunnels without exposing the Sense tenant directly.
+React + Vite PWA (Progressive Web App) mashup that brokers access to the Qlik Sense "Consumer Sales" demo app through a hardened reverse proxy. The UI renders live Qlik objects, exposes lightweight analytics pages, and runs entirely on top of a single proxy endpoint so it can be deployed on-prem or via Cloudflare tunnels without exposing the Sense tenant directly.
 
 ## Key Features
 
+- **Progressive Web App (PWA)**: Installable, offline-capable, with automatic updates
 - Reverse‑proxy workflow: all HTTP (`/api/*`) and WebSocket traffic flows through the Node/Express proxy running on `localhost:3000` (or a remote tunnel).
 - Bundled QIX schema (`12.170.2`) so the client never downloads `enigma.json` from Qlik Cloud during runtime.
 - `enigma.js` session helper with a diagnostic `testQlikConnection()` that logs engine version and doc list for quick smoke testing.
 - React components (`QlikObjectContainer`) that request visualisations via Nebula.js and react to connection state events.
 - Navigation sidebar shows real-time connection status sourced from `qlikService` events.
 - Playwright e2e smoke test validating the mock service path.
+
+## PWA Features
+
+✨ **Install on any device** - Works like a native app  
+🔄 **Automatic updates** - Always get the latest version  
+📱 **Offline support** - Cached content works without internet  
+⚡ **Fast loading** - Instant startup with service worker caching  
+
+See [PWA_FEATURES.md](./PWA_FEATURES.md) for detailed PWA documentation.
 
 ## Project Structure Highlights
 
@@ -55,7 +65,7 @@ Because Vite inlines `VITE_*` variables at build time, ensure the deployment pip
 
 ## Deployment Notes
 
-- Build with `npm run build`; the output in `dist/` is static and can be hosted on Lovable or any static host.
+- Build with `npm run build`; the output in `dist/` is static and can be hosted on Lovable, Netlify or any static host.
 - Configure the hosting environment to provide the same `VITE_*` vars used locally, or create an environment-specific `.env` file before building.
 - The frontend assumes the proxy enforces `x-proxy-token` for REST calls; WebSocket auth should be handled server side (query string, cookie, etc.) since browsers cannot add custom headers to WS handshakes.
 

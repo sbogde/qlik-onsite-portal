@@ -8,6 +8,9 @@ import Analytics from "./pages/Analytics";
 import Reports from "./pages/Reports";
 import NotFound from "./pages/NotFound";
 import { Layout } from "./components/Layout";
+import { PWAUpdateNotification } from "./components/PWAUpdateNotification";
+import { OfflineIndicator } from "./components/OfflineIndicator";
+import { InstallPrompt } from "./components/InstallPrompt";
 
 const queryClient = new QueryClient();
 
@@ -27,6 +30,9 @@ const App = () => (
           </Routes>
         </Layout>
       </BrowserRouter>
+      <PWAUpdateNotification />
+      <OfflineIndicator />
+      <InstallPrompt />
     </TooltipProvider>
   </QueryClientProvider>
 );
