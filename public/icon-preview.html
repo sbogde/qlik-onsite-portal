@@ -1,169 +1,178 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PWA Icon Options - Qlik Analytics</title>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>✅ PWA Icon Applied - Qlik Analytics</title>
     <style>
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            margin: 0;
-            padding: 40px;
-            background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
-            min-height: 100vh;
-        }
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-        }
-        h1 {
-            text-align: center;
-            color: #1f2937;
-            margin-bottom: 50px;
-            font-size: 2.5rem;
-            font-weight: 700;
-        }
-        .icons-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 40px;
-            margin-bottom: 50px;
-        }
-        .icon-option {
-            background: white;
-            padding: 30px;
-            border-radius: 20px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-            text-align: center;
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-        }
-        .icon-option:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 20px 40px rgba(0,0,0,0.15);
-        }
-        .icon-preview {
-            width: 200px;
-            height: 200px;
-            margin: 0 auto 20px;
-            border-radius: 20px;
-            overflow: hidden;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
-        }
-        .icon-preview img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-        h3 {
-            color: #1f2937;
-            margin-bottom: 15px;
-            font-size: 1.5rem;
-        }
-        p {
-            color: #6b7280;
-            line-height: 1.6;
-            margin-bottom: 20px;
-        }
-        .features {
-            text-align: left;
-            background: #f9fafb;
-            padding: 20px;
-            border-radius: 10px;
-            margin-top: 20px;
-        }
-        .features ul {
-            margin: 0;
-            padding-left: 20px;
-            color: #4b5563;
-        }
-        .features li {
-            margin-bottom: 8px;
-        }
-        .code-snippet {
-            background: #1f2937;
-            color: #e5e7eb;
-            padding: 20px;
-            border-radius: 10px;
-            font-family: 'Monaco', 'Consolas', monospace;
-            font-size: 0.9rem;
-            margin-top: 30px;
-            overflow-x: auto;
-        }
-        .highlight {
-            color: #fbbf24;
-        }
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+          sans-serif;
+        margin: 0;
+        padding: 40px;
+        background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
+        min-height: 100vh;
+      }
+      .container {
+        max-width: 1200px;
+        margin: 0 auto;
+      }
+      h1 {
+        text-align: center;
+        color: #1f2937;
+        margin-bottom: 50px;
+        font-size: 2.5rem;
+        font-weight: 700;
+      }
+      .icons-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 40px;
+        margin-bottom: 50px;
+      }
+      .icon-option {
+        background: white;
+        padding: 30px;
+        border-radius: 20px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        text-align: center;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+      }
+      .icon-option:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+      }
+      .icon-preview {
+        width: 200px;
+        height: 200px;
+        margin: 0 auto 20px;
+        border-radius: 20px;
+        overflow: hidden;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+      }
+      .icon-preview img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+      h3 {
+        color: #1f2937;
+        margin-bottom: 15px;
+        font-size: 1.5rem;
+      }
+      p {
+        color: #6b7280;
+        line-height: 1.6;
+        margin-bottom: 20px;
+      }
+      .features {
+        text-align: left;
+        background: #f9fafb;
+        padding: 20px;
+        border-radius: 10px;
+        margin-top: 20px;
+      }
+      .features ul {
+        margin: 0;
+        padding-left: 20px;
+        color: #4b5563;
+      }
+      .features li {
+        margin-bottom: 8px;
+      }
+      .code-snippet {
+        background: #1f2937;
+        color: #e5e7eb;
+        padding: 20px;
+        border-radius: 10px;
+        font-family: "Monaco", "Consolas", monospace;
+        font-size: 0.9rem;
+        margin-top: 30px;
+        overflow-x: auto;
+      }
+      .highlight {
+        color: #fbbf24;
+      }
     </style>
-</head>
-<body>
+  </head>
+  <body>
     <div class="container">
-        <h1>🎨 PWA Icon Options for Qlik Analytics</h1>
-        
-        <div class="icons-grid">
-            <div class="icon-option">
-                <div class="icon-preview">
-                    <img src="pwa-icon-option-1.svg" alt="Option 1 - Analytics Chart" />
-                </div>
-                <h3>Option 1: Analytics Chart</h3>
-                <p>Clean bar chart with trend line overlay, perfect for representing data analytics and business intelligence.</p>
-                <div class="features">
-                    <strong>Features:</strong>
-                    <ul>
-                        <li>Bar chart with ascending data trend</li>
-                        <li>Yellow accent line (Qlik brand color)</li>
-                        <li>Professional gradient background</li>
-                        <li>Clear data visualization focus</li>
-                    </ul>
-                </div>
-            </div>
+      <h1>🎨 PWA Icon Options for Qlik Analytics</h1>
 
-            <div class="icon-option">
-                <div class="icon-preview">
-                    <img src="pwa-icon-option-2.svg" alt="Option 2 - Dashboard Grid" />
-                </div>
-                <h3>Option 2: Dashboard Interface</h3>
-                <p>Modern dashboard layout with multiple widgets, representing the comprehensive analytics platform.</p>
-                <div class="features">
-                    <strong>Features:</strong>
-                    <ul>
-                        <li>Multi-widget dashboard layout</li>
-                        <li>Pie chart and bar chart elements</li>
-                        <li>Grid-based professional design</li>
-                        <li>Comprehensive analytics representation</li>
-                    </ul>
-                </div>
-            </div>
-
-            <div class="icon-option">
-                <div class="icon-preview">
-                    <img src="pwa-icon-option-3.svg" alt="Option 3 - Qlik Q Symbol" />
-                </div>
-                <h3>Option 3: Qlik-Inspired Q</h3>
-                <p>Distinctive "Q" symbol with integrated data elements, directly referencing the Qlik brand identity.</p>
-                <div class="features">
-                    <strong>Features:</strong>
-                    <ul>
-                        <li>Iconic "Q" letterform design</li>
-                        <li>Embedded mini charts inside Q</li>
-                        <li>Strong brand recognition</li>
-                        <li>Blue-to-dark gradient background</li>
-                    </ul>
-                </div>
-            </div>
+      <div class="icons-grid">
+        <div class="icon-option">
+          <div class="icon-preview">
+            <img src="pwa-icon-option-1.svg" alt="Option 1 - Analytics Chart" />
+          </div>
+          <h3>Option 1: Analytics Chart</h3>
+          <p>
+            Clean bar chart with trend line overlay, perfect for representing
+            data analytics and business intelligence.
+          </p>
+          <div class="features">
+            <strong>Features:</strong>
+            <ul>
+              <li>Bar chart with ascending data trend</li>
+              <li>Yellow accent line (Qlik brand color)</li>
+              <li>Professional gradient background</li>
+              <li>Clear data visualization focus</li>
+            </ul>
+          </div>
         </div>
 
-        <div class="code-snippet">
-<span class="highlight">// To apply your chosen icon, update vite.config.ts:</span>
-
-icons: [
-  {
-    src: '<span class="highlight">pwa-icon-option-X.svg</span>', <span class="highlight">// Replace X with your choice (1, 2, or 3)</span>
-    sizes: 'any',
-    type: 'image/svg+xml',
-    purpose: 'any'
-  },
-  // ... other icon configurations
-]
+        <div class="icon-option">
+          <div class="icon-preview">
+            <img src="pwa-icon-option-2.svg" alt="Option 2 - Dashboard Grid" />
+          </div>
+          <h3>Option 2: Dashboard Interface</h3>
+          <p>
+            Modern dashboard layout with multiple widgets, representing the
+            comprehensive analytics platform.
+          </p>
+          <div class="features">
+            <strong>Features:</strong>
+            <ul>
+              <li>Multi-widget dashboard layout</li>
+              <li>Pie chart and bar chart elements</li>
+              <li>Grid-based professional design</li>
+              <li>Comprehensive analytics representation</li>
+            </ul>
+          </div>
         </div>
+
+        <div class="icon-option">
+          <div class="icon-preview">
+            <img src="pwa-icon-option-3.svg" alt="Option 3 - Qlik Q Symbol" />
+          </div>
+          <h3>Option 3: Qlik-Inspired Q</h3>
+          <p>
+            Distinctive "Q" symbol with integrated data elements, directly
+            referencing the Qlik brand identity.
+          </p>
+          <div class="features">
+            <strong>Features:</strong>
+            <ul>
+              <li>Iconic "Q" letterform design</li>
+              <li>Embedded mini charts inside Q</li>
+              <li>Strong brand recognition</li>
+              <li>Blue-to-dark gradient background</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <div class="code-snippet">
+        <span class="highlight"
+          >// To apply your chosen icon, update vite.config.ts:</span
+        >
+
+        icons: [ { src: '<span class="highlight">pwa-icon-option-X.svg</span>',
+        <span class="highlight"
+          >// Replace X with your choice (1, 2, or 3)</span
+        >
+        sizes: 'any', type: 'image/svg+xml', purpose: 'any' }, // ... other icon
+        configurations ]
+      </div>
     </div>
-</body>
+  </body>
 </html>

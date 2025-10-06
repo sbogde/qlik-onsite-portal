@@ -14,7 +14,7 @@ export default defineConfig(({ mode }) => ({
     VitePWA({
       registerType: "autoUpdate",
       includeAssets: [
-        "qlik-favicon.svg",
+        "pwa-icon-option-3.svg",
         "favicon.ico",
         "robots.txt",
         "placeholder.svg",
@@ -32,7 +32,7 @@ export default defineConfig(({ mode }) => ({
         orientation: "portrait-primary",
         icons: [
           {
-            src: "qlik-favicon.svg",
+            src: "pwa-icon-option-3.svg",
             sizes: "any",
             type: "image/svg+xml",
             purpose: "any",
@@ -43,13 +43,13 @@ export default defineConfig(({ mode }) => ({
             type: "image/x-icon",
           },
           {
-            src: "qlik-favicon.svg",
+            src: "pwa-icon-option-3.svg",
             sizes: "192x192",
             type: "image/svg+xml",
             purpose: "any maskable",
           },
           {
-            src: "qlik-favicon.svg",
+            src: "pwa-icon-option-3.svg",
             sizes: "512x512",
             type: "image/svg+xml",
             purpose: "any maskable",
