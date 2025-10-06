@@ -39,6 +39,11 @@ export interface QlikServiceContract {
     theme?: string;
     language?: string;
   }): Promise<() => void>;
+  // Selection methods
+  selectValues(fieldName: string, values: string[]): Promise<boolean>;
+  clearSelections(fieldNames?: string[]): Promise<boolean>;
+  getFieldValues(fieldName: string): Promise<string[]>;
+  getCurrentSelections(): Promise<{[fieldName: string]: string[]}>;
   on(event: EventName, handler: Listener): void;
   off(event: EventName, handler: Listener): void;
 }
@@ -190,11 +195,11 @@ class QlikService implements QlikServiceContract {
       this.app = null;
       if (this.nebula) {
         try {
-          await this.nebula.destroy?.();
+          // The nebula instance doesn't have a destroy method, just set it to null
+          this.nebula = null;
         } catch (error) {
           console.warn("Failed to destroy nebula instance:", error);
         }
-        this.nebula = null;
       }
       this.emit("disconnected");
     }
@@ -313,6 +318,83 @@ class QlikService implements QlikServiceContract {
     };
   }
 
+  async selectValues(fieldName: string, values: string[]): Promise<boolean> {
+    if (!this.app) {
+      throw new Error("Not connected to Qlik Sense app");
+    }
+
+    try {
+      const field = await this.app.getField(fieldName);
+      await field.selectValues(values.map(value => ({ qText: value })), true, true);
+      return true;
+    } catch (error) {
+      console.error(`Failed to select values in field ${fieldName}:`, error);
+      return false;
+    }
+  }
+
+  async clearSelections(fieldNames?: string[]): Promise<boolean> {
+    if (!this.app) {
+      throw new Error("Not connected to Qlik Sense app");
+    }
+
+    try {
+      if (fieldNames && fieldNames.length > 0) {
+        // Clear specific fields
+        for (const fieldName of fieldNames) {
+          const field = await this.app.getField(fieldName);
+          await field.clear();
+        }
+      } else {
+        // Clear all selections
+        await this.app.clearAll();
+      }
+      return true;
+    } catch (error) {
+      console.error("Failed to clear selections:", error);
+      return false;
+    }
+  }
+
+  async getFieldValues(fieldName: string): Promise<string[]> {
+    if (!this.app) {
+      throw new Error("Not connected to Qlik Sense app");
+    }
+
+    try {
+      const field = await this.app.getField(fieldName);
+      const data = await field.getData();
+      return data.map((item: any) => item.qText);
+    } catch (error) {
+      console.error(`Failed to get field values for ${fieldName}:`, error);
+      return [];
+    }
+  }
+
+  async getCurrentSelections(): Promise<{[fieldName: string]: string[]}> {
+    if (!this.app) {
+      throw new Error("Not connected to Qlik Sense app");
+    }
+
+    try {
+      const layout = await this.app.getAppLayout();
+      const selections: {[fieldName: string]: string[]} = {};
+      
+      if (layout.qSelectionInfo && layout.qSelectionInfo.qInSelections) {
+        for (const selection of layout.qSelectionInfo.qInSelections) {
+          if (selection.qField && selection.qSelected) {
+            selections[selection.qField] = selection.qSelected.split(', ');
+          }
+        }
+      }
+      
+      return selections;
+    } catch (error) {
+      console.error("Failed to get current selections:", error);
+      return {};
+    }
+  }
+
   on(event: EventName, handler: Listener): void {
     this.listeners[event].add(handler);
   }
@@ -422,6 +504,34 @@ class MockQlikService implements QlikServiceContract {
         element.removeChild(viz);
       }
     };
+  }
+
+  async selectValues(fieldName: string, values: string[]): Promise<boolean> {
+    console.log(`Mock: Selecting values in ${fieldName}:`, values);
+    return true;
+  }
+
+  async clearSelections(fieldNames?: string[]): Promise<boolean> {
+    console.log(`Mock: Clearing selections for fields:`, fieldNames || "all");
+    return true;
+  }
+
+  async getFieldValues(fieldName: string): Promise<string[]> {
+    console.log(`Mock: Getting field values for ${fieldName}`);
+    // Return mock values based on field name
+    const mockValues: {[key: string]: string[]} = {
+      "Region Name": ["Northeast", "Southeast", "Central", "West", "Southwest"],
+      "Channel": ["Direct", "Distribution", "Government", "Hospital", "Internet", "Retail"],
+      "Product Sub Group Desc": ["Fresh Vegetables", "Canned Fruit", "Cereal", "Candy", "Dairy"],
+      "Sales Rep": ["Amalia Craig", "Amanda Ho", "Amelia Fields", "Angolan Carter", "Brenda Gibson"],
+      "Year": ["2019", "2020", "2021", "2022", "2023"],
+    };
+    return mockValues[fieldName] || [];
+  }
+
+  async getCurrentSelections(): Promise<{[fieldName: string]: string[]}> {
+    console.log("Mock: Getting current selections");
+    return {};
   }
 
   on(event: EventName, handler: Listener): void {

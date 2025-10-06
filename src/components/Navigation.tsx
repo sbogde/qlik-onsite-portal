@@ -88,6 +88,7 @@ export const Navigation: React.FC = () => {
     [key: string]: string[];
   }>({});
   const [expandedFilter, setExpandedFilter] = useState<string | null>(null);
+  const [applyingFilter, setApplyingFilter] = useState<string | null>(null);
 
   useEffect(() => {
     const handleConnected = () => setConnected(true);
@@ -102,39 +103,99 @@ export const Navigation: React.FC = () => {
     };
   }, []);
 
+  // Sync current selections from Qlik Sense when connected
+  useEffect(() => {
+    if (connected) {
+      const syncSelections = async () => {
+        try {
+          const currentSelections = await qlikService.getCurrentSelections();
+          setActiveFilters(currentSelections);
+        } catch (error) {
+          console.error("Failed to sync current selections:", error);
+        }
+      };
+
+      syncSelections();
+    } else {
+      // Clear local filters when disconnected
+      setActiveFilters({});
+    }
+  }, [connected]);
+
   const indicatorColor = connected ? "bg-green-500" : "bg-red-500";
   const statusText = connected
     ? "Connected to Qlik Sense"
     : "Disconnected from Qlik Sense";
 
-  const toggleFilter = (fieldId: string, value: string) => {
-    setActiveFilters((prev) => {
-      const current = prev[fieldId] || [];
-      const isActive = current.includes(value);
+  const toggleFilter = async (fieldId: string, value: string) => {
+    if (!connected) {
+      console.warn("Cannot apply filters: not connected to Qlik Sense");
+      return;
+    }
 
-      if (isActive) {
-        // Remove filter
-        const updated = current.filter((v) => v !== value);
-        if (updated.length === 0) {
+    setApplyingFilter(`${fieldId}-${value}`);
+
+    try {
+      setActiveFilters((prev) => {
+        const current = prev[fieldId] || [];
+        const isActive = current.includes(value);
+
+        let newValues: string[];
+        if (isActive) {
+          // Remove filter
+          newValues = current.filter((v) => v !== value);
+        } else {
+          // Add filter
+          newValues = [...current, value];
+        }
+
+        // Apply selection to Qlik Sense (async)
+        if (newValues.length > 0) {
+          qlikService.selectValues(fieldId, newValues).catch(error => {
+            console.error("Failed to apply selection:", error);
+          });
+        } else {
+          qlikService.clearSelections([fieldId]).catch(error => {
+            console.error("Failed to clear field selection:", error);
+          });
+        }
+
+        if (newValues.length === 0) {
           const { [fieldId]: removed, ...rest } = prev;
           return rest;
         }
-        return { ...prev, [fieldId]: updated };
-      } else {
-        // Add filter
-        return { ...prev, [fieldId]: [...current, value] };
-      }
-    });
+        return { ...prev, [fieldId]: newValues };
+      });
+    } finally {
+      // Clear loading state after a brief delay
+      setTimeout(() => setApplyingFilter(null), 300);
+    }
   };
 
-  const clearFieldFilters = (fieldId: string) => {
+  const clearFieldFilters = async (fieldId: string) => {
+    if (connected) {
+      try {
+        await qlikService.clearSelections([fieldId]);
+      } catch (error) {
+        console.error("Failed to clear field selections:", error);
+      }
+    }
+
     setActiveFilters((prev) => {
       const { [fieldId]: removed, ...rest } = prev;
       return rest;
     });
   };
 
-  const clearAllFilters = () => {
+  const clearAllFilters = async () => {
+    if (connected) {
+      try {
+        await qlikService.clearSelections();
+      } catch (error) {
+        console.error("Failed to clear all selections:", error);
+      }
+    }
+
     setActiveFilters({});
   };
 
@@ -288,19 +349,28 @@ export const Navigation: React.FC = () => {
                   <div className="mt-2 pl-2 space-y-1">
                     {field.values.map((value) => {
                       const isActive = activeValues.includes(value);
+                      const isApplying = applyingFilter === `${field.id}-${value}`;
                       return (
                         <Button
                           key={value}
                           variant={isActive ? "secondary" : "ghost"}
                           size="sm"
                           onClick={() => toggleFilter(field.id, value)}
+                          disabled={isApplying || !connected}
                           className={`w-full justify-start text-[11px] h-7 px-2 ${
                             isActive
                               ? "bg-analytics-blue/10 text-analytics-blue border border-analytics-blue/20"
                               : "hover:bg-accent/40"
-                          }`}
+                          } ${isApplying ? "opacity-50" : ""}`}
                         >
-                          {value}
+                          {isApplying ? (
+                            <div className="flex items-center gap-2">
+                              <div className="w-3 h-3 border border-analytics-blue border-t-transparent rounded-full animate-spin" />
+                              {value}
+                            </div>
+                          ) : (
+                            value
+                          )}
                         </Button>
                       );
                     })}
