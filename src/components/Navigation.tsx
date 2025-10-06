@@ -94,7 +94,9 @@ export const Navigation: React.FC = () => {
   const [applyingFilter, setApplyingFilter] = useState<string | null>(null);
   const [filtersExpanded, setFiltersExpanded] = useState(true);
   const [bookmarksExpanded, setBookmarksExpanded] = useState(true);
-  const [bookmarks, setBookmarks] = useState<Array<{id: string; title: string; description?: string}>>([]);
+  const [bookmarks, setBookmarks] = useState<
+    Array<{ id: string; title: string; description?: string }>
+  >([]);
   const [applyingBookmark, setApplyingBookmark] = useState<string | null>(null);
 
   useEffect(() => {
