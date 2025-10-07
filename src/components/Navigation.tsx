@@ -114,33 +114,56 @@ export const Navigation: React.FC = () => {
 
   // Sync current selections from Qlik Sense when connected
   useEffect(() => {
+    console.log("Navigation: Connection state changed, connected:", connected);
+    
+    const syncSelections = async () => {
+      try {
+        const currentSelections = await qlikService.getCurrentSelections();
+        setActiveFilters(currentSelections);
+      } catch (error) {
+        console.error("Failed to sync current selections:", error);
+      }
+    };
+
+    const loadBookmarks = async () => {
+      try {
+        console.log("Navigation: Loading bookmarks...");
+        const bookmarksList = await qlikService.getBookmarks();
+        console.log("Navigation: Bookmarks loaded:", bookmarksList);
+        setBookmarks(bookmarksList);
+      } catch (error) {
+        console.error("Failed to load bookmarks:", error);
+        // Set empty array on error
+        setBookmarks([]);
+      }
+    };
+
+    // Always try to load bookmarks, regardless of connection state
+    loadBookmarks();
+    
     if (connected) {
-      const syncSelections = async () => {
-        try {
-          const currentSelections = await qlikService.getCurrentSelections();
-          setActiveFilters(currentSelections);
-        } catch (error) {
-          console.error("Failed to sync current selections:", error);
-        }
-      };
-
-      const loadBookmarks = async () => {
-        try {
-          const bookmarksList = await qlikService.getBookmarks();
-          setBookmarks(bookmarksList);
-        } catch (error) {
-          console.error("Failed to load bookmarks:", error);
-        }
-      };
-
       syncSelections();
-      loadBookmarks();
     } else {
-      // Clear local filters and bookmarks when disconnected
+      // Clear local filters when disconnected, but keep trying bookmarks
       setActiveFilters({});
-      setBookmarks([]);
     }
   }, [connected]);
+
+  // Also try to load bookmarks on component mount
+  useEffect(() => {
+    const loadBookmarks = async () => {
+      try {
+        console.log("Navigation: Initial bookmark load...");
+        const bookmarksList = await qlikService.getBookmarks();
+        console.log("Navigation: Initial bookmarks loaded:", bookmarksList);
+        setBookmarks(bookmarksList);
+      } catch (error) {
+        console.error("Failed to load bookmarks on mount:", error);
+      }
+    };
+
+    loadBookmarks();
+  }, []);
 
   const indicatorColor = connected ? "bg-green-500" : "bg-red-500";
   const statusText = connected

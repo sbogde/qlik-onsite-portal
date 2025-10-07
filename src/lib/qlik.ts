@@ -404,13 +404,34 @@ class QlikService implements QlikServiceContract {
   async getBookmarks(): Promise<
     Array<{ id: string; title: string; description?: string }>
   > {
+    console.log("getBookmarks called, app connected:", !!this.app);
+    
     if (!this.app) {
-      throw new Error("Not connected to Qlik Sense app");
+      console.log("No app connection, returning demo bookmarks");
+      return [
+        {
+          id: "demo-bookmark-1",
+          title: "Demo: All Data",
+          description: "View all data without filters (demo bookmark)",
+        },
+        {
+          id: "demo-bookmark-2",
+          title: "Demo: Current Year", 
+          description: "Filter to current year data (demo bookmark)",
+        },
+        {
+          id: "demo-bookmark-3",
+          title: "Demo: Top Regions",
+          description: "Focus on top performing regions (demo bookmark)",
+        },
+      ];
     }
 
     try {
+      console.log("Attempting to get bookmark list from Qlik app...");
       const bookmarkList = await this.app.getBookmarkList();
       const layout = await bookmarkList.getLayout();
+      console.log("Bookmark list layout:", layout);
 
       const realBookmarks = layout.qBookmarkList.qItems.map((item: any) => ({
         id: item.qInfo.qId,
@@ -418,6 +439,8 @@ class QlikService implements QlikServiceContract {
           item.qData.title || item.qMeta.title || `Bookmark ${item.qInfo.qId}`,
         description: item.qData.description || item.qMeta.description,
       }));
+
+      console.log("Real bookmarks found:", realBookmarks.length);
 
       // If no real bookmarks exist, provide some sample ones for demo purposes
       if (realBookmarks.length === 0) {
@@ -429,7 +452,7 @@ class QlikService implements QlikServiceContract {
             description: "View all data without filters (demo bookmark)",
           },
           {
-            id: "demo-bookmark-2", 
+            id: "demo-bookmark-2",
             title: "Demo: Current Year",
             description: "Filter to current year data (demo bookmark)",
           },
@@ -443,12 +466,27 @@ class QlikService implements QlikServiceContract {
 
       return realBookmarks;
     } catch (error) {
-      console.error("Failed to get bookmarks:", error);
-      return [];
+      console.error("Failed to get bookmarks from Qlik app:", error);
+      console.info("Returning demo bookmarks due to error");
+      return [
+        {
+          id: "demo-bookmark-1",
+          title: "Demo: All Data",
+          description: "View all data without filters (demo bookmark)",
+        },
+        {
+          id: "demo-bookmark-2",
+          title: "Demo: Current Year",
+          description: "Filter to current year data (demo bookmark)",
+        },
+        {
+          id: "demo-bookmark-3",
+          title: "Demo: Top Regions",
+          description: "Focus on top performing regions (demo bookmark)",
+        },
+      ];
     }
-  }
-
-  async applyBookmark(bookmarkId: string): Promise<boolean> {
+  }  async applyBookmark(bookmarkId: string): Promise<boolean> {
     if (!this.app) {
       throw new Error("Not connected to Qlik Sense app");
     }
@@ -474,7 +512,7 @@ class QlikService implements QlikServiceContract {
             const regionField = await this.app.getField("Region Name");
             await regionField.selectValues([
               { qText: "Northeast" },
-              { qText: "West" }
+              { qText: "West" },
             ]);
             break;
         }
